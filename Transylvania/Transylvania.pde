@@ -30,7 +30,6 @@ class Entity
 }
 
 ArrayList<Entity> Entities;
-ArrayList<Entity> EntsToRemove;
 
 // player variables
 int px = 2, py = 2;
@@ -420,7 +419,11 @@ void make_room()
                 for (int x = 0; x < room_size; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i, grid_size * j + x, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i,
+						grid_size * j + x,
+						-1,
+						EntityType.WALL,
+						wall)
                     );
                 }
             }
@@ -456,7 +459,11 @@ void make_room()
                 for (int x = 0; x < room_size; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i + x, grid_size * j, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + x,
+						grid_size * j,
+						-1,
+						EntityType.WALL,
+						wall)
                     );
                 }
             }
@@ -465,19 +472,29 @@ void make_room()
                 for (int x = 0; x < hall_cutoff; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i + x, grid_size * j, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + x,
+						grid_size * j,
+						-1,
+						EntityType.WALL,
+						wall)
                     );                                             
                 }                                                  
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)                        
                 {                                                  
                     Entities.add(                                  
-                        new Entity(grid_size * i + x, grid_size * j, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + x,
+						grid_size * j,
+						-1,
+						EntityType.WALL,
+						wall)
                     );
                 }
             }
 
             // draw right side wall
-            if (((rooms[j][i] & RIGHT) == RIGHT) || (i < (map_size - 1)) && (Math.random() < chance))
+            if (((rooms[j][i] & RIGHT) == RIGHT)
+                || (i < (map_size - 1))
+                && (Math.random() < chance))
             {
                 rooms[j][i] |= RIGHT;
                 rooms[j][i + 1] |= LEFT;
@@ -528,20 +545,30 @@ void make_room()
                 for (int x = 0; x <= room_size; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i + room_size, grid_size * j + x, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + room_size,
+						grid_size * j + x,
+						-1,
+						EntityType.WALL,
+						wall)
                     );
                 }
             }
 
             // draw bottom side wall
-            if (((rooms[j][i] & DOWN) == DOWN) || (j < (map_size - 1)) && (Math.random() < chance))
+            if (((rooms[j][i] & DOWN) == DOWN)
+                || (j < (map_size - 1))
+                && (Math.random() < chance))
             {
                 rooms[j][i] |= DOWN;
                 rooms[j + 1][i] |= UP;
                 for (int x = 0; x < hall_cutoff; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i + x, grid_size * j + room_size, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + x,
+						grid_size * j + room_size,
+						-1,
+						EntityType.WALL,
+						wall)
                     );                                             
                 }                                                  
                 for (int x = 0; x <= hall_size; x++)
@@ -566,7 +593,12 @@ void make_room()
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)                        
                 {                                                  
                     Entities.add(                                  
-                        new Entity(grid_size * i + x, grid_size * j + room_size, -1, EntityType.WALL, wall)
+                        new Entity(
+                            grid_size * i + x,
+                            grid_size * j + room_size,		
+                            -1,		
+                            EntityType.WALL,		
+                            wall)
                     );
                 }
             }
@@ -575,7 +607,11 @@ void make_room()
                 for (int x = 0; x < room_size; x++)
                 {
                     Entities.add(
-                        new Entity(grid_size * i + x, grid_size * j + room_size, -1, EntityType.WALL, wall)
+                        new Entity(grid_size * i + x,
+                            grid_size * j + room_size,
+                            -1,
+                            EntityType.WALL,
+                            wall)
                     );
                 }
             }
@@ -656,7 +692,6 @@ void setup()
     leds.show();
     
     Entities = new ArrayList<Entity>();
-    EntsToRemove = new ArrayList<Entity>();
 
     // add grass
     // Entities.add(new Entity(0, 0, EntityType.GRASS, grass));
@@ -686,7 +721,7 @@ void draw()
         }
         // draw entities
         DrawSprite(player, (px - camx) * 8, (py - camy) * 8, false);
-        
+
         ptick++;
         if (ptick >= palarm)
         {
@@ -745,7 +780,11 @@ void draw()
             DrawSprite(e.sprite, (e.x - camx) * 8, (e.y - camy) * 8, false);
         }
         UpdateCamera();
+
         leds.show();
+
+        // UI
+        // DrawRect(48, 0, 60, 32, 0);
   }
   else
   {

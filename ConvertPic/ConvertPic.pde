@@ -6,15 +6,12 @@ import java.util.List;
 
 void setup() 
 {
-  ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/player.png", "player");
+  // windows
+  ConvertSprite("D:/Documents/Transylvania/Transylvania Assets/L.png", "L");
+  ConvertSprite("D:/Documents/Transylvania/Transylvania Assets/less_than.png", "less_than");
   
-  ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/grass.png", "grass");
-  
-  ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/wall.png", "wall");
-  
-  ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/ladder.png", "ladder");
-  
-  ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/spider.png", "spider");
+  // mac
+  // ConvertSprite("/Users/kevino/Documents/LED Matrix/Transylvania Assets/spider.png", "spider");
   
   //ConvertSpriteGroup("C:/LED Matrix/SDB Assets", "balls0.png,balls1.png,balls2.png,balls3.png,balls4.png,balls5.png", "balls");
   

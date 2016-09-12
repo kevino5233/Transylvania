@@ -88,3 +88,56 @@ int[] spider_palate = {
 };
 //struct Sprite spider = {8, 8, &spider_image[0][0], spider_palate};
 Sprite spider = new Sprite(8, 8, spider_image, spider_palate);
+
+//const uint8_t L_image[8][8] = {
+int[][] L_image = {
+{255, 255, 255, 255, 255, 255, 255, 255, },
+{255, 255,   0, 255, 255, 255, 255, 255, },
+{255, 255,   0, 255, 255, 255, 255, 255, },
+{255, 255,   0, 255, 255, 255, 255, 255, },
+{255, 255,   0, 255, 255, 255, 255, 255, },
+{255, 255,   0, 255, 255, 255, 255, 255, },
+{255, 255,   0,   0,   0,   0, 255, 255, },
+{255, 255, 255, 255, 255, 255, 255, 255, },
+};
+//const uint32_t L_palate[] = {
+int[] L_palate = {
+0xFFFFFF, 
+};
+//struct Sprite L = {8, 8, &L_image[0][0], L_palate};
+Sprite L = new Sprite(8, 8, L_image, L_palate);
+
+//const uint8_t less_than_image[8][8] = {
+int[][] less_than_image = {
+{255, 255, 255, 255, 255, 255, 255, 255,},
+{255, 255, 255, 255, 255, 0, 255, 255,},
+{255, 255, 255, 255,   0, 255, 255, 255,},
+{255, 255, 255,   0, 255, 255, 255, 255,},
+{255, 255,   0, 255, 255, 255, 255, 255,},
+{255, 255, 255,   0, 255, 255, 255, 255,},
+{255, 255, 255, 255,   0, 255, 255, 255,},
+{255, 255, 255, 255, 255, 0, 255, 255,},
+};
+//const uint32_t less_than_palate[] = {
+int[] less_than_palate = {
+0xFF42DD, 
+};
+//struct Sprite less_than = {8, 8, &less_than_image[0][0], less_than_palate};
+Sprite less_than = new Sprite(8, 8, less_than_image, less_than_palate);
+//const uint8_t three_image[8][8] = {
+int[][] three_image = {
+{255, 255, 255, 255, 255, 255, },
+{  0,   0,   0,   0, 255, 255, },
+{255, 255, 255,   0, 255, 255, },
+{255, 255, 255,   0, 255, 255, },
+{  0,   0,   0,   0, 255, 255, },
+{255, 255, 255,   0, 255, 255, },
+{255, 255, 255,   0, 255, 255, },
+{  0,   0,   0,   0, 255, 255, },
+};
+//const uint32_t three_palate[] = {
+int[] three_palate = {
+0xFF42DD, 
+};
+//struct Sprite three = {8, 8, &three_image[0][0], three_palate};
+Sprite three = new Sprite(8, 8, three_image, three_palate);
