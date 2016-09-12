@@ -8,6 +8,7 @@ enum EntityType
     WALL,
     LADDER,
     SPIDER,
+    BAT,
     NONE
 };
 
@@ -27,6 +28,36 @@ class Entity
     public EntityType Type;
     public Sprite sprite;
     public boolean active = true;
+}
+
+class Bat extends Entity
+{
+    // bat cycle:
+    // calculate manhattan distance
+    // if dist < detect_range and not in cycle
+    //    calculate slope
+    //    travel in that slope every cycle
+    // else if in cycle
+    //    fx += slope_x
+    //    fx += slope_y
+    //    cycle_tick++
+    //    do the thing with cycle_duration and flight_duration
+    // else
+    //    cycle_tick = 0
+    public Bat(int _x, int _y)
+    {
+        super(_x, _y, 15, EntityType.BAT, bat);
+    }
+    public float fx, fy, slope_x, slope_y;
+
+    // manhattan distance
+    public final int detect_range = 8;
+
+    // total cycles for attack
+    public final int cycle_duration = 16;
+    // number of cycles to fly
+    public final int flight_duration = 8;
+    public int cycle_tick = 0;
 }
 
 ArrayList<Entity> Entities;

@@ -141,3 +141,21 @@ int[] three_palate = {
 };
 //struct Sprite three = {8, 8, &three_image[0][0], three_palate};
 Sprite three = new Sprite(8, 8, three_image, three_palate);
+
+//const uint8_t bat_image[8][8] = {
+int[][] bat_image = {
+{255,   0,   0,   0,   0,   0, 255, 255, },
+{255,   0, 255, 255, 255, 255,   0, 255, },
+{255,   0, 255, 255, 255, 255,   0, 255, },
+{255,   0, 255,   0,   0,   0, 255, 255, },
+{255,   0, 255, 255, 255, 255,   0, 255, },
+{255,   0, 255, 255, 255, 255,   0, 255, },
+{255,   0, 255, 255, 255, 255,   0, 255, },
+{255,   0,   0,   0,   0,   0, 255, 255, },
+};
+//const uint32_t bat_palate[] = {
+int[] bat_palate = {
+0xD25B00, 
+};
+//struct Sprite bat = {8, 8, &bat_image[0][0], bat_palate};
+Sprite bat = new Sprite(8, 8, bat_image, bat_palate);
