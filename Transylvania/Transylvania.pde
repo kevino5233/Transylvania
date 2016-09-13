@@ -1,5 +1,4 @@
 import java.awt.event.KeyEvent;
-
 OctoWS2811 leds = new OctoWS2811(240, 60);
 
 enum EntityType
@@ -32,35 +31,27 @@ class Entity
 
 class Bat extends Entity
 {
-    // bat cycle:
-    // calculate manhattan distance
-    // if dist < detect_range and not in cycle
-    //    calculate slope
-    //    travel in that slope every cycle
-    // else if in cycle
-    //    fx += slope_x
-    //    fx += slope_y
-    //    cycle_tick++
-    //    do the thing with cycle_duration and flight_duration
-    // else
-    //    cycle_tick = 0
     public Bat(int _x, int _y)
     {
         super(_x, _y, 15, EntityType.BAT, bat);
+        fx = _x;
+        fy = _y;
     }
-    public float fx, fy, slope_x, slope_y;
+    public float fx, fy, dx, dy;
 
     // manhattan distance
-    public final int detect_range = 8;
+    public static final int detect_range = 8;
 
     // total cycles for attack
-    public final int cycle_duration = 16;
+    public static final int cycle_duration = 10;
     // number of cycles to fly
-    public final int flight_duration = 8;
-    public int cycle_tick = 0;
+    public static final int flight_duration = 6;
+    public int cycle_tick = cycle_duration;
 }
 
 ArrayList<Entity> Entities;
+ArrayList<Entity> Spiders;
+ArrayList<Bat> Bats;
 
 // player variables
 int px = 2, py = 2;
@@ -147,7 +138,7 @@ boolean TestCollisionEnt(Entity ent, int dir_from)
     }
     for (Entity e : Entities)
     {
-        if (ent == e && !e.active)
+        if ((ent == e && !e.active) || (e == ent))
         {
             continue;
         }
@@ -221,6 +212,24 @@ boolean TestCollisionPlayer(int dir_from)
                 }
             }
             return true;
+        }
+    }
+    for (Bat bat : Bats)
+    {
+        if (px == bat.x && py == bat.y)
+        {
+            bat.active = false;
+            if (p_health <= 0)
+            {
+                map_size = 3;
+                p_health = 3;
+                make_room();
+            }
+            else if (p_invincible_tick == 0)
+            {
+                p_invincible_tick = p_invincible_time;
+                p_health--;
+            }
         }
     }
     // Entities.removeAll(EntsToRemove);
@@ -388,6 +397,8 @@ void make_room()
 
     px = (grid_start_x * grid_size) + (room_size / 2);
     py = (grid_start_y * grid_size) + (room_size / 2);
+
+    Bats.add(new Bat(px + 1, py + 1));
 
     Entity Spider = new Entity(
         px, py+1, 100,
@@ -723,6 +734,7 @@ void setup()
     leds.show();
     
     Entities = new ArrayList<Entity>();
+    Bats = new ArrayList<Bat>();
 
     // add grass
     // Entities.add(new Entity(0, 0, EntityType.GRASS, grass));
@@ -769,7 +781,6 @@ void draw()
             }
             if (e.Type == EntityType.LADDER && e.x == px && e.y == py)
             {
-                // make_room();
                 ready = false;
                 break;
             }
@@ -810,18 +821,91 @@ void draw()
             e.tick++;
             DrawSprite(e.sprite, (e.x - camx) * 8, (e.y - camy) * 8, false);
         }
+        for (Bat b : Bats)
+        {
+            if (!b.active)
+            {
+                continue;
+            }
+            if (b.tick >= b.alarm)
+            {
+                if (b.cycle_tick == Bat.cycle_duration)
+                {
+                    int dx = px - b.x;
+                    int dy = py - b.y;
+                    int abs_dx = Math.abs(dx);
+                    int abs_dy = Math.abs(dy);
+                    if ((abs_dx + abs_dy) <= Bat.detect_range)
+                    {
+                        if (abs_dx >= abs_dy)
+                        {
+                            b.dx = 1;
+                            b.dy = (abs_dy == 0) ? 0 : (1.0 / abs_dy);
+                        }                                   
+                        else                                
+                        {                                   
+                            b.dx = (abs_dx == 0) ? 0 : (1.0 / abs_dx);
+                            b.dy = 1;
+                        }
+                        if (dx < 0)
+                        {
+                            b.dx *= -1;
+                        }
+                        if (dy < 0)
+                        {
+                            b.dy *= -1;
+                        }
+                        b.cycle_tick = 0;
+                        print(abs_dx,',',abs_dy,'\n');
+                        print(b.dx,',',b.dy,'\n');
+                    }
+                }
+                else if (b.cycle_tick < Bat.flight_duration)
+                {
+                    b.fx += b.dx;
+                    b.fy += b.dy;
+                    b.x = (int)b.fx;
+                    b.y = (int)b.fy;
+
+                    if (b.dx > 0)
+                    {
+                        TestCollisionEnt(b, RIGHT);
+                    }
+                    else
+                    {
+                        TestCollisionEnt(b, LEFT);
+                    }
+
+                    if (b.dy > 0)
+                    {
+                        TestCollisionEnt(b, DOWN);
+                    }
+                    else
+                    {
+                        TestCollisionEnt(b, UP);
+                    }
+                }
+                b.cycle_tick++;
+                b.tick = 0;
+            }
+            else
+            {
+                b.tick++;
+            }
+            DrawSprite(bat, (b.x - camx) * 8, (b.y - camy) * 8, false);
+        }
         UpdateCamera();
 
         leds.show();
 
         // UI
         // DrawRect(48, 0, 60, 32, 0);
-  }
-  else
-  {
-      // map_size = map_size + fib_var;
-      // fib_var = map_size - fib_var;
-      map_size++;
-      make_room();
-  }
+    }
+    else
+    {
+        // map_size = map_size + fib_var;
+        // fib_var = map_size - fib_var;
+        map_size++;
+        make_room();
+    }
 }

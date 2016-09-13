@@ -1,0 +1,12 @@
+TODO:
+-seperate entities into their own containers
+-pre-allocate these lists so you don't have to call new every time you
+complete the level
+-this also allows you to just do the entity functionality without
+worrying about determining type
+-make actually interesting level gen
+    -ideas: 1 bat per room max, 3 spiders per room max
+    -other enemies???
+    -health
+    -exp system and shit
+-give to mickey!
