@@ -79,11 +79,11 @@ final int hall_width = 4;
 
 void UpdateCamera()
 {
-    if ((px - camx) >= 5 && ((grid_length - camx) > 5))
+    if ((px - camx) >= 6 && ((grid_length - camx) > 6))
     {
        camx++;
     }
-    else if ((px - camx) < 1 && (camx > 0))
+    else if ((px - camx) < 2 && (camx > 0))
     {
        camx--;
     }
@@ -124,15 +124,15 @@ boolean TestCollisionEnt(Entity ent, int dir_from)
     if (ent.x == px && ent.y == py)
     {
         ent.active = false;
-        if (p_health <= 0)
-        {
-            map_size = 3;
-            make_room();
-        }
-        else if (p_invincible_tick == 0)
+        if (p_invincible_tick == 0)
         {
             p_invincible_tick = p_invincible_time;
             p_health--;
+            if (p_health <= 0)
+            {
+                map_size = 3;
+                ready = false;
+            }
         }
         return true;
     }
@@ -199,16 +199,16 @@ boolean TestCollisionPlayer(int dir_from)
             else if (e.Type == EntityType.SPIDER)
             {
                 e.active = false;
-                if (p_health <= 0)
-                {
-                    map_size = 3;
-                    p_health = 3;
-                    make_room();
-                }
-                else if (p_invincible_tick == 0)
+                if (p_invincible_tick == 0)
                 {
                     p_invincible_tick = p_invincible_time;
                     p_health--;
+                    if (p_health <= 0)
+                    {
+                        map_size = 3;
+                        p_health = 3;
+                        ready = false;
+                    }
                 }
             }
             return true;
@@ -219,16 +219,16 @@ boolean TestCollisionPlayer(int dir_from)
         if (px == bat.x && py == bat.y)
         {
             bat.active = false;
-            if (p_health <= 0)
-            {
-                map_size = 3;
-                p_health = 3;
-                make_room();
-            }
-            else if (p_invincible_tick == 0)
+            if (p_invincible_tick == 0)
             {
                 p_invincible_tick = p_invincible_time;
                 p_health--;
+                if (p_health <= 0)
+                {
+                    map_size = 3;
+                    p_health = 3;
+                    ready = false;
+                }
             }
         }
     }
@@ -398,15 +398,6 @@ void make_room()
     px = (grid_start_x * grid_size) + (room_size / 2);
     py = (grid_start_y * grid_size) + (room_size / 2);
 
-    Bats.add(new Bat(px + 1, py + 1));
-
-    Entity Spider = new Entity(
-        px, py+1, 100,
-        EntityType.SPIDER,
-        spider);
-
-    Entities.add(Spider);
-
     Entities.add(
         new Entity(
             (grid_end_x * grid_size) + (room_size / 2),
@@ -414,7 +405,6 @@ void make_room()
             -1,
             EntityType.LADDER,
             ladder));
-    // gaurantee solution
 
     while (grid_start_x < grid_end_x)
     {
@@ -455,6 +445,36 @@ void make_room()
     {
         for (int i = 0; i < map_size; i++)
         {
+            if (Math.random() < 0.25)
+            {
+                Bats.add(
+                    new Bat(
+                        grid_size * i + 2 * room_size / 3,
+                        grid_size * j + room_size / 3
+                ));
+            }
+            if (Math.random() < 0.35)
+            {
+                Entity Spider = new Entity(
+                    grid_size * i + room_size / 3,
+                    grid_size * j + room_size / 3,
+                    100,
+                    EntityType.SPIDER,
+                    spider);
+
+                Entities.add(Spider);
+            }
+            if (Math.random() < 0.35)
+            {
+                Entity Spider = new Entity(
+                    grid_size * i + 2 * room_size / 3,
+                    grid_size * j + 2 * room_size / 3,
+                    100,
+                    EntityType.SPIDER,
+                    spider);
+
+                Entities.add(Spider);
+            }
             // draw left side wall
             if ((rooms[j][i] & LEFT) == 0)
             {
@@ -462,10 +482,10 @@ void make_room()
                 {
                     Entities.add(
                         new Entity(grid_size * i,
-						grid_size * j + x,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j + x,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );
                 }
             }
@@ -502,10 +522,10 @@ void make_room()
                 {
                     Entities.add(
                         new Entity(grid_size * i + x,
-						grid_size * j,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );
                 }
             }
@@ -515,20 +535,20 @@ void make_room()
                 {
                     Entities.add(
                         new Entity(grid_size * i + x,
-						grid_size * j,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );                                             
                 }                                                  
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)                        
                 {                                                  
                     Entities.add(                                  
                         new Entity(grid_size * i + x,
-						grid_size * j,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );
                 }
             }
@@ -588,10 +608,10 @@ void make_room()
                 {
                     Entities.add(
                         new Entity(grid_size * i + room_size,
-						grid_size * j + x,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j + x,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );
                 }
             }
@@ -607,10 +627,10 @@ void make_room()
                 {
                     Entities.add(
                         new Entity(grid_size * i + x,
-						grid_size * j + room_size,
-						-1,
-						EntityType.WALL,
-						wall)
+                        grid_size * j + room_size,
+                        -1,
+                        EntityType.WALL,
+                        wall)
                     );                                             
                 }                                                  
                 for (int x = 0; x <= hall_size; x++)
@@ -637,9 +657,9 @@ void make_room()
                     Entities.add(                                  
                         new Entity(
                             grid_size * i + x,
-                            grid_size * j + room_size,		
-                            -1,		
-                            EntityType.WALL,		
+                            grid_size * j + room_size,      
+                            -1,     
+                            EntityType.WALL,        
                             wall)
                     );
                 }
@@ -734,6 +754,7 @@ void setup()
     leds.show();
     
     Entities = new ArrayList<Entity>();
+    // ensureCapacity(size)
     Bats = new ArrayList<Bat>();
 
     // add grass
@@ -829,7 +850,7 @@ void draw()
             }
             if (b.tick >= b.alarm)
             {
-                if (b.cycle_tick == Bat.cycle_duration)
+                if (b.cycle_tick >= Bat.cycle_duration)
                 {
                     int dx = px - b.x;
                     int dy = py - b.y;
@@ -856,8 +877,6 @@ void draw()
                             b.dy *= -1;
                         }
                         b.cycle_tick = 0;
-                        print(abs_dx,',',abs_dy,'\n');
-                        print(b.dx,',',b.dy,'\n');
                     }
                 }
                 else if (b.cycle_tick < Bat.flight_duration)
@@ -906,6 +925,7 @@ void draw()
         // map_size = map_size + fib_var;
         // fib_var = map_size - fib_var;
         map_size++;
+        p_invincible_tick = 0;
         make_room();
     }
 }
