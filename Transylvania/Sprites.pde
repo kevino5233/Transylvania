@@ -149,3 +149,105 @@ int[] sprite_x_palate = {
 };
 //struct Sprite sprite_x = {6, 6, &sprite_x_image[0][0], sprite_x_palate};
 Sprite sprite_x = new Sprite(6, 6, sprite_x_image, sprite_x_palate);
+
+//const uint32_t d_magic_1_palate[] = {
+int[] d_magic_palate = {
+0x000000, 
+};
+//const uint8_t d_magic_1_image[6][6] = {
+int[][] d_magic_1_image = {
+{255,   0,   0,   0,   0, 255, },
+{  0, 255, 255, 255, 255,   0, },
+{  0, 255, 255, 255, 255,   0, },
+{  0,   0,   0,   0,   0,   0, },
+{  0, 255, 255, 255, 255,   0, },
+{  0, 255, 255, 255, 255,   0, },
+};
+//struct Sprite d_magic_1 = {6, 6, &d_magic_1_image[0][0], d_magic_palate};
+Sprite d_magic_1 = new Sprite(6, 6, d_magic_1_image, d_magic_palate);
+
+//const uint8_t d_magic_2_image[6][6] = {
+int[][] d_magic_2_image = {
+{  0,   0, 255, 255, 255,   0, },
+{  0,   0, 255, 255,   0, 255, },
+{255, 255, 255,   0, 255, 255, },
+{255, 255,   0, 255, 255, 255, },
+{255,   0, 255, 255,   0,   0, },
+{  0, 255, 255, 255,   0,   0, },
+};
+//struct Sprite d_magic_2 = {6, 6, &d_magic_2_image[0][0], d_magic_palate};
+Sprite d_magic_2 = new Sprite(6, 6, d_magic_2_image, d_magic_palate);
+
+//const uint8_t d_magic_3_image[6][6] = {
+int[][] d_magic_3_image = {
+{255, 255,   0, 255, 255, 255, },
+{255,   0, 255,   0, 255, 255, },
+{  0, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255, 255, 255, },
+{255, 255, 255, 255, 255, 255, },
+{255, 255, 255, 255, 255, 255, },
+};
+//struct Sprite d_magic_3 = {6, 6, &d_magic_3_image[0][0], d_magic_palate};
+Sprite d_magic_3 = new Sprite(6, 6, d_magic_3_image, d_magic_palate);
+
+//const uint8_t d_magic_4_image[6][6] = {
+int[][] d_magic_4_image = {
+{255, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+{255,   0, 255, 255,   0, 255, },
+{255,   0,   0,   0,   0, 255, },
+};
+//struct Sprite d_magic_4 = {6, 6, &d_magic_4_image[0][0], d_magic_palate};
+Sprite d_magic_4 = new Sprite(6, 6, d_magic_4_image, d_magic_palate);
+
+//const uint8_t d_magic_5_image[6][6] = {
+int[][] d_magic_5_image = {
+{255,   0, 255, 255,   0, 255, },
+{255,   0, 255, 255,   0, 255, },
+{255,   0,   0,   0,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+{255, 255, 255, 255,   0, 255, },
+};
+//struct Sprite d_magic_5 = {6, 6, &d_magic_5_image[0][0], d_magic_palate};
+Sprite d_magic_5 = new Sprite(6, 6, d_magic_5_image, d_magic_palate);
+
+//const uint8_t d_magic_6_image[6][6] = {
+int[][] d_magic_6_image = {
+{255,   0,   0,   0,   0, 255, },
+{  0, 255, 255, 255, 255,   0, },
+{255,   0,   0,   0,   0, 255, },
+{  0, 255, 255, 255, 255,   0, },
+{  0, 255, 255, 255, 255,   0, },
+{255,   0,   0,   0,   0, 255, },
+};
+//struct Sprite d_magic_6 = {6, 6, &d_magic_6_image[0][0], d_magic_palate};
+Sprite d_magic_6 = new Sprite(6, 6, d_magic_6_image, d_magic_palate);
+
+//const uint8_t d_magic_7_image[6][6] = {
+int[][] d_magic_7_image = {
+{255,   0,   0, 255, 255, 255, },
+{  0, 255, 255,   0, 255, 255, },
+{255,   0,   0, 255, 255, 255, },
+{  0, 255, 255,   0, 255,   0, },
+{  0, 255, 255, 255,   0, 255, },
+{255,   0,   0,   0, 255,   0, },
+};
+//struct Sprite d_magic_7 = {6, 6, &d_magic_7_image[0][0], d_magic_palate};
+Sprite d_magic_7 = new Sprite(6, 6, d_magic_7_image, d_magic_palate);
+
+//const uint8_t dracula_image[6][6] = {
+int[][] dracula_image = {
+{  0,   0,   0,   0, 255, 255, },
+{  1, 255, 255, 255,   1, 255, },
+{  1, 255, 255, 255,   1, 255, },
+{  1, 255, 255, 255,   1, 255, },
+{  1, 255, 255, 255,   1, 255, },
+{  0,   0,   0,   0, 255, 255, },
+};
+//const uint32_t dracula_palate[] = {
+int[] dracula_palate = { 0xFFFFFF, 0xFFFFFF };
+//struct Sprite dracula = {6, 6, &dracula_image[0][0], dracula_palate};
+Sprite dracula = new Sprite(6, 6, dracula_image, dracula_palate);
