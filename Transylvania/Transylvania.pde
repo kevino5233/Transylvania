@@ -26,6 +26,12 @@ enum EntityType
 
 class Entity
 {
+    public Entity(int _u)
+    {
+        alarm = _u;
+        active = false;
+    }
+
     public Entity(int _x, int _y, int _u, EntityType _Type, Sprite _s)
     {
         x = _x;
@@ -33,42 +39,22 @@ class Entity
         alarm = _u;
         Type = _Type;
         sprite = _s;
+        active = false;
     }
     public int x, y;
     final int alarm;
     public int tick = 0;
     public EntityType Type;
     public Sprite sprite;
-    public boolean active = true;
+    public boolean active;
 }
 
 // TODO: combine Bat and Stake into MovingEntity, pull out constant variables
 class Stake extends Entity
 {
-    public Stake(int _x, int _y, int _dir)
+    public Stake()
     {
-        super(_x, _y, 7, EntityType.STAKE, stake);
-        if (_dir == UP)
-        {
-            dx = 0;
-            dy = -1;
-        }
-        else if (_dir == DOWN)
-        {
-            dx = 0;
-            dy = 1;
-        }
-        else if (_dir == LEFT)
-        {
-            dx = -1;
-            dy = 0;
-        }
-        else if (_dir == RIGHT)
-        {
-            dx = 1;
-            dy = 0;
-        }
-        dir = _dir;
+        super(0, 0, 7, EntityType.STAKE, stake);
     }
 
     public int dx, dy, dir;
@@ -76,11 +62,9 @@ class Stake extends Entity
 
 class Bat extends Entity
 {
-    public Bat(int _x, int _y)
+    public Bat()
     {
-        super(_x, _y, 15, EntityType.BAT, bat);
-        fx = _x;
-        fy = _y;
+        super(0, 0, 15, EntityType.BAT, bat);
     }
     public float fx, fy, dx, dy;
 
@@ -98,43 +82,47 @@ class Dracula extends Entity
 {
     public Dracula(int _x, int _y)
     {
-        super(_x, _y, 15, EntityType.DRACULA, dracula);
+        super(_x, _y, 30, EntityType.DRACULA, dracula_sprite);
     }
 
     public int state;
-    public final int num_states = 4;
+    public static final int num_states = 4;
     public boolean state_clock = false;
+    public int health = 3;
+
+    public int invincible_timer = 0;
+    public final int invincible_time = 120;
 }
 
 // TODO: Use pre-allocated arrays
 // maybe have one huge array with all entities, and have defined start-end points?
 // Entity[] Entities = new Entity[MAX_ENTITIES];
 //
-// num_static_ents
-// MAX_STATIC_ENTS
-//
-// num_spiders
-// MAX_SPIDERS
-//
-// num_bats
-// MAX_BATS
-//
-// num_stakes
-// MAX_STAKES
+int num_static_ents = 0;
+final int  MAX_STATIC_ENTS = 800;
 
-ArrayList<Entity> StaticEntities;
-ArrayList<Entity> Spiders;
-ArrayList<Bat> Bats;
-ArrayList<Stake> Stakes;
+int num_spiders = 0;
+final int MAX_SPIDERS = 50;
+
+int num_bats = 0;
+final int MAX_BATS = 25;
+
+final int MAX_STAKES = 9;
+
+Entity[] StaticEntities = new Entity[MAX_STATIC_ENTS];
+Entity[] Spiders = new Entity[MAX_SPIDERS];
+Bat[] Bats = new Bat[MAX_BATS];
+Stake[] Stakes = new Stake[MAX_STAKES];
 
 // Draculaaaaa
-Entity Dracula;
+Dracula dracula;
 
 // MAGIC MAGIC (oooh)! MAGIC MAGIC (ooh)! MAGIC MAGIC MAGIC MAGIC (ooh)!
 int d_magic_i = 0;
-int[] d_magic_colors = { 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF }
-Sprite[] d_magic_sprites = { d_magic_1, d_magic_2, d_magic_3, d_magic_4,
-    d_magic_5, d_magic_6, d_magic_7 };
+int[] d_magic_colors = { 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF };
+
+// Sprite[] d_magic_sprites = { d_magic_1, d_magic_2, d_magic_3, d_magic_4,
+        // d_magic_5, d_magic_6, d_magic_7 };
 
 int ladder_x, ladder_y;
 
@@ -142,7 +130,7 @@ int ladder_x, ladder_y;
 int px = 2, py = 2;
 int dpx = 0, dpy = 0, pdir;
 
-int p_stakes = 10;
+int p_stakes = MAX_STAKES;
 
 int p_health = 3;
 
@@ -194,9 +182,9 @@ void TestCollisionSpider(Entity ent, int dir_from)
 {
     if (ent.x == px && ent.y == py)
     {
-        ent.active = false;
         if (p_invincible_tick == 0)
         {
+            ent.active = false;
             p_invincible_tick = p_invincible_time;
             p_health--;
             if (p_health <= 0)
@@ -229,8 +217,9 @@ void TestCollisionSpider(Entity ent, int dir_from)
     {
         a = -1;
     }
-    for (Entity e : StaticEntities)
+    for (int i = 0; i < num_static_ents; i++)
     {
+        Entity e = StaticEntities[i];
         if ((ent == e && !e.active) || (e == ent))
         {
             continue;
@@ -242,10 +231,16 @@ void TestCollisionSpider(Entity ent, int dir_from)
                 ent.x += a;
                 ent.y += b;
             }
-            else if (e.Type == EntityType.SPIDER)
-            {
-                // health--;
-            }
+            return;
+        }
+    }
+    for (int i = 0; i < MAX_STAKES; i++)
+    {
+        Stake s = Stakes[i];
+        if (s.active && s.x == ent.x && s.y == ent.y)
+        {
+            ent.active = false;
+            s.active = false;
             return;
         }
     }
@@ -254,8 +249,9 @@ void TestCollisionSpider(Entity ent, int dir_from)
 
 void TestCollisionStake(Stake s)
 {
-    for (Entity e : StaticEntities)
+    for (int i = 0; i < num_static_ents; i++)
     {
+        Entity e = StaticEntities[i];
         if (e.x == s.x && e.y == s.y)
         {
             if (e.Type == EntityType.WALL)
@@ -271,8 +267,9 @@ void TestCollisionStake(Stake s)
             }
         }
     }
-    for (Bat b : Bats)
+    for (int i = 0; i < num_bats; i++)
     {
+        Bat b = Bats[i];
         if (s.x == b.x && s.y == b.y)
         {
             s.active = false;
@@ -312,8 +309,9 @@ void TestCollisionPlayer(int dir_from)
         ready = false;
         return;
     }
-    for (Entity e : StaticEntities)
+    for (int i = 0; i < num_static_ents; i++)
     {
+        Entity e = StaticEntities[i];
         if (!e.active)
         {
             continue;
@@ -325,31 +323,17 @@ void TestCollisionPlayer(int dir_from)
                 px += a;
                 py += b;
             }
-            else if (e.Type == EntityType.SPIDER)
-            {
-                e.active = false;
-                if (p_invincible_tick == 0)
-                {
-                    p_invincible_tick = p_invincible_time;
-                    p_health--;
-                    if (p_health <= 0)
-                    {
-                        map_size = 3;
-                        p_health = 3;
-                        ready = false;
-                    }
-                }
-            }
             return;
         }
     }
-    for (Bat bat : Bats)
+    for (int i = 0; i < num_spiders; i++)
     {
-        if (px == bat.x && py == bat.y)
+        Entity s = Spiders[i];
+        if (s.active && s.x == px && s.y == py)
         {
-            bat.active = false;
             if (p_invincible_tick == 0)
             {
+                s.active = false;
                 p_invincible_tick = p_invincible_time;
                 p_health--;
                 if (p_health <= 0)
@@ -361,7 +345,25 @@ void TestCollisionPlayer(int dir_from)
             }
         }
     }
-    // StaticEntities.removeAll(EntsToRemove);
+    for (int i = 0; i < num_bats; i++)
+    {
+        Bat bat = Bats[i];
+        if (bat.active && px == bat.x && py == bat.y)
+        {
+            if (p_invincible_tick == 0)
+            {
+                bat.active = false;
+                p_invincible_tick = p_invincible_time;
+                p_health--;
+                if (p_health <= 0)
+                {
+                    map_size = 3;
+                    p_health = 3;
+                    ready = false;
+                }
+            }
+        }
+    }
     return;
 }
 
@@ -371,35 +373,118 @@ final int LEFT = 4;
 final int RIGHT = 8;
 
 boolean ready = false;
+boolean win = false;
+boolean lose = false;
+
+void AddWall(int x, int y)
+{
+    StaticEntities[num_static_ents].x = x;
+    StaticEntities[num_static_ents].y = y;
+    StaticEntities[num_static_ents].Type = EntityType.WALL;
+    StaticEntities[num_static_ents].sprite = wall;
+    StaticEntities[num_static_ents].active = true;
+    num_static_ents++;
+}
+
+void AddGrass(int x, int y)
+{
+    StaticEntities[num_static_ents].x = x;
+    StaticEntities[num_static_ents].y = y;
+    StaticEntities[num_static_ents].Type = EntityType.GRASS;
+    StaticEntities[num_static_ents].sprite = grass;
+    StaticEntities[num_static_ents].active = true;
+    num_static_ents++;
+}
+
+void AddSpider(int x, int y)
+{
+    Spiders[num_spiders].x = x;
+    Spiders[num_spiders].y = y;
+    Spiders[num_spiders].active = true;
+    Spiders[num_spiders].sprite = spider;
+    num_spiders++;
+}
+
+void AddBat(int x, int y)
+{
+    Bats[num_bats].x = x;
+    Bats[num_bats].y = y;
+    Bats[num_bats].active = true;
+    num_bats++;
+}
+
+void AddStake(int dir)
+{
+    for (int i = 0; i < MAX_STAKES; i++)
+    {
+        Stake s = Stakes[i];
+        if (s.active)
+        {
+            continue;
+        }
+        s.x = px;
+        s.y = py;
+        if (dir == UP)
+        {
+            s.dx = 0;
+            s.dy = -1;
+        }
+        else if (dir == DOWN)
+        {
+            s.dx = 0;
+            s.dy = 1;
+        }
+        else if (dir == LEFT)
+        {
+            s.dx = -1;
+            s.dy = 0;
+        }
+        else if (dir == RIGHT)
+        {
+            s.dx = 1;
+            s.dy = 0;
+        }
+        s.dir = dir;
+        s.active = true;
+        break;
+    }
+}
+
+int[][] rooms = new int[5][5];
 
 void make_room()
 {
-    StaticEntities.clear();
+    num_static_ents = 0;
+    num_spiders = 0;
+    num_bats = 0;
+
+    for (int i = 0; i < MAX_STAKES; i++)
+    {
+        Stakes[i].active = false;
+    }
 
     // dracula!!!
     if (map_size == 6)
     {
-        int[][] rooms = new int[d_room_size][d_room_size];
         for (int i = 0; i < d_room_size; i++)
         {
-            StaticEntities.add(new Entity(i, 0, -1, EntityType.WALL, wall));
-            StaticEntities.add(new Entity(i + 1, d_room_size, -1, EntityType.WALL, wall));
-            StaticEntities.add(new Entity(d_room_size, i, -1, EntityType.WALL, wall));
-            StaticEntities.add(new Entity(0, i + 1, -1, EntityType.WALL, wall));
+            AddWall(i, 0);
+            AddWall(i + 1, d_room_size);
+            AddWall(d_room_size, i);
+            AddWall(i, i + 1);
         }
         // generate other stuff. not important rn
-        Dracula.active = true;
+        dracula.active = true;
         return;
     }
 
-    int[][] rooms = new int[map_size][map_size];
     int num_rooms = map_size * map_size;
-    int start = (int)(Math.random() * num_rooms);
-    int end = (int)(Math.random() * num_rooms);
+    int start = (int)(random(num_rooms));
+    int end = (int)(random(num_rooms));
 
     while (end == start)
     {
-        end = (int)(Math.random() * num_rooms);
+        end = (int)(random( num_rooms));
     }
 
     int grid_start_x = start % map_size;
@@ -418,6 +503,15 @@ void make_room()
     // TODO: Make more interesting solutions
     // manulaly simulate traversing rooms?
     // max step count?
+
+    //reset rooms
+    for (int j = 0; j < map_size; j++)
+    {
+        for (int i = 0; i < map_size; i++)
+        {
+            rooms[j][i] = 0;
+        }
+    }
     while (grid_start_x < grid_end_x)
     {
         rooms[grid_start_y][grid_start_x] |= RIGHT;
@@ -448,79 +542,40 @@ void make_room()
     // set total grid length for bounds checking
     grid_length = map_size * grid_size;
 
-    float chance = 0.25;
-
     for (int j = 0; j < map_size; j++)
     {
         for (int i = 0; i < map_size; i++)
         {
-            if (Math.random() < 0.25)
+            float rando = random(100);
+            if (rando < 25)
             {
-                Bats.add(
-                    new Bat(
-                        grid_size * i + 2 * room_size / 3,
-                        grid_size * j + room_size / 3
-                ));
+                AddBat(grid_size * i + 2 * room_size / 3, grid_size * j + room_size / 3);
             }
-            if (Math.random() < 0.35)
+            if (rando < 35)
             {
-                Entity Spider = new Entity(
-                    grid_size * i + room_size / 3,
-                    grid_size * j + room_size / 3,
-                    100,
-                    EntityType.SPIDER,
-                    spider);
-
-                Spiders.add(Spider);
+                AddSpider(grid_size * i + room_size / 3, grid_size * j + room_size / 3);
             }
-            if (Math.random() < 0.35)
+            if (rando > 65)
             {
-                Entity Spider = new Entity(
-                    grid_size * i + 2 * room_size / 3,
-                    grid_size * j + 2 * room_size / 3,
-                    100,
-                    EntityType.SPIDER,
-                    spider);
-
-                Spiders.add(Spider);
+                AddSpider(grid_size * i + room_size / 3, grid_size * j + room_size / 3);
             }
             // draw left side wall
             if ((rooms[j][i] & LEFT) == 0)
             {
                 for (int x = 0; x < room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i,
-                        grid_size * j + x,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );
+                    AddWall(grid_size * i, grid_size * j + x);
                 }
             }
             else
             {
                 for (int x = 0; x < hall_cutoff; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i,
-                            grid_size * j + x,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));
+                    AddWall(grid_size * i, grid_size * j + x);
                 }
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i,
-                            grid_size * j + x,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));
+                    AddWall(grid_size * i, grid_size * j + x);
                 }
             }
 
@@ -529,184 +584,92 @@ void make_room()
             {
                 for (int x = 0; x < room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i + x,
-                        grid_size * j,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );
+                    AddWall(grid_size * i + x, grid_size * j);
                 }
             }
             else
             {
                 for (int x = 0; x < hall_cutoff; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i + x,
-                        grid_size * j,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );                                             
+                    AddWall(grid_size * i + x, grid_size * j);
                 }                                                  
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)                        
                 {                                                  
-                    StaticEntities.add(                                  
-                        new Entity(grid_size * i + x,
-                        grid_size * j,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );
+                    AddWall(grid_size * i + x, grid_size * j);
                 }
             }
 
             // draw right side wall
             if (((rooms[j][i] & RIGHT) == RIGHT)
                 || (i < (map_size - 1))
-                && (Math.random() < chance))
+                && (random(4) < 1))
             {
                 rooms[j][i] |= RIGHT;
                 rooms[j][i + 1] |= LEFT;
                 for (int x = 0; x < hall_cutoff; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + room_size,
-                            grid_size * j + x,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));
+                    AddWall(grid_size * i + room_size, grid_size * j + x);
                 }
                 for (int x = 0; x <= hall_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + x + room_size,
-                            grid_size * j + hall_cutoff,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));                                                             
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + x + room_size,
-                            grid_size * j + hall_cutoff + hall_width - 1,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));                                                             
+                    AddWall(grid_size * i + x + room_size, grid_size * j + hall_cutoff);
+                    AddWall(grid_size * i + x + room_size, grid_size * j + hall_cutoff + hall_width - 1);
                 }
                 for (int x = hall_cutoff + hall_width; x <= room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + room_size,
-                            grid_size * j + x,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));
+                    AddWall(grid_size * i + room_size, grid_size * j + x);
                 }
             }
             else
             {
                 for (int x = 0; x <= room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i + room_size,
-                        grid_size * j + x,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );
+                    AddWall(grid_size * i + room_size, grid_size * j + x);
                 }
             }
 
             // draw bottom side wall
             if (((rooms[j][i] & DOWN) == DOWN)
                 || (j < (map_size - 1))
-                && (Math.random() < chance))
+                && (random(4) < 1))
             {
                 rooms[j][i] |= DOWN;
                 rooms[j + 1][i] |= UP;
                 for (int x = 0; x < hall_cutoff; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i + x,
-                        grid_size * j + room_size,
-                        -1,
-                        EntityType.WALL,
-                        wall)
-                    );                                             
+                    AddWall(grid_size * i + x, grid_size * j + room_size);
                 }                                                  
                 for (int x = 0; x <= hall_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + hall_cutoff,
-                            grid_size * j + x + room_size,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));                                                             
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + hall_cutoff + hall_width - 1,
-                            grid_size * j + x + room_size,
-                            -1,
-                            EntityType.WALL,
-                            wall
-                    ));                                                             
+                    AddWall(grid_size * i + hall_cutoff, grid_size * j + x + room_size);
+                    AddWall(grid_size * i + hall_cutoff + hall_width - 1, grid_size * j + x + room_size);
                 }
                 for (int x = hall_cutoff + hall_width; x < room_size; x++)                        
                 {                                                  
-                    StaticEntities.add(                                  
-                        new Entity(
-                            grid_size * i + x,
-                            grid_size * j + room_size,      
-                            -1,     
-                            EntityType.WALL,        
-                            wall)
-                    );
+                    AddWall(grid_size * i + x,  grid_size * j + room_size);
                 }
             }
             else
             {
                 for (int x = 0; x < room_size; x++)
                 {
-                    StaticEntities.add(
-                        new Entity(grid_size * i + x,
-                            grid_size * j + room_size,
-                            -1,
-                            EntityType.WALL,
-                            wall)
-                    );
+                    AddWall(grid_size * i + x, grid_size * j + room_size);
                 }
             }
 
             // draw grass
             for (int x = 1; x < room_size - 1; x++)
             {
-                int rando = (int)(Math.random() * (room_size));
+                rando = random(room_size);
                 if (rando < room_size - 2)
                 {
-                    StaticEntities.add(
-                        new Entity(
-                            grid_size * i + x,
-                            grid_size * j + 1 + rando,
-                            -1,
-                            EntityType.GRASS,
-                            grass
-                        ));
+                    AddGrass(grid_size * i + x, grid_size * j + 1 + (int)rando);
                 }
             }
         }
     }
 
-    // print map
+    // print map. debug only
     print(map_size, 'x', map_size, '\n');
     for (int j = 0; j < map_size; j++)
     {
@@ -761,24 +724,32 @@ void setup()
     background(32, 32, 32);
     leds.begin();
     leds.show();
-    
+
     // TODO: After switching to pre-allocated arrays, fill the
     // arrays with sentinel objects so we take care of allocation during setup()
-    StaticEntities = new ArrayList<Entity>();
-    // ensureCapacity(size)
-    Spiders = new ArrayList<Entity>();
-    Bats = new ArrayList<Bat>();
-    Stakes = new ArrayList<Stake>();
 
-    Dracula = new Entity(d_room_size / 2, d_room_size / 2, 60, EntityType.DRACULA, dracula);
-    Dracula.active = false;
+    for (int i = 0; i < MAX_STATIC_ENTS; i++)
+    {
+        StaticEntities[i] = new Entity(-1);
+    }
 
-    // add grass
-    // StaticEntities.add(new Entity(0, 0, EntityType.GRASS, grass));
-    // StaticEntities.add(new Entity(2, 0, EntityType.GRASS, grass));
-    // StaticEntities.add(new Entity(3, 3, EntityType.GRASS, grass));
-    // StaticEntities.add(new Entity(8, 4, EntityType.GRASS, grass));
-    // StaticEntities.add(new Entity(9, 5, EntityType.GRASS, grass));
+    for (int i = 0; i < MAX_SPIDERS; i++)
+    {
+        Spiders[i] = new Entity(100);
+    }
+
+    for (int i = 0; i < MAX_BATS; i++)
+    {
+        Bats[i] = new Bat();
+    }
+
+    for (int i = 0; i < MAX_STAKES; i++)
+    {
+        Stakes[i] = new Stake();
+    }
+
+    dracula = new Dracula(d_room_size / 2, d_room_size / 2);
+    dracula.active = false;
 
     make_room();
 }
@@ -791,7 +762,15 @@ void draw()
     midi.processNoteOffs();
     // clear screen
     DrawRect(0, 0, 60, 32, 0);
-    if (ready)
+    if (win)
+    {
+        // yay!
+    }
+    else if (lose)
+    {
+        // boo :(
+    }
+    else if (ready)
     {
         if (!u_held)
         {
@@ -894,7 +873,7 @@ void draw()
                 if (p_stakes > 0)
                 {
                     p_stakes--;
-                    Stakes.add(new Stake(px, py - 1, UP));
+                    AddStake(UP);
                 }
             }
         }
@@ -912,7 +891,7 @@ void draw()
                 if (p_stakes > 0)
                 {
                     p_stakes--;
-                    Stakes.add(new Stake(px, py + 1, DOWN));
+                    AddStake(DOWN);
                 }
             }
         }
@@ -926,11 +905,10 @@ void draw()
             if (!x_held)
             {
                 x_held = true;
-                // throw stake right
                 if (p_stakes > 0)
                 {
                     p_stakes--;
-                    Stakes.add(new Stake(px - 1, py, LEFT));
+                    AddStake(LEFT);
                 }
             }
         }
@@ -944,11 +922,10 @@ void draw()
             if (!b_held)
             {
                 b_held = true;
-                // throw stake left
                 if (p_stakes > 0)
                 {
                     p_stakes--;
-                    Stakes.add(new Stake(px + 1, py, RIGHT));
+                    AddStake(RIGHT);
                 }
             }
         }
@@ -976,28 +953,151 @@ void draw()
             py += dpy;
             TestCollisionPlayer(pdir);
         }
-        if (Dracula.active)
+        if (dracula.active)
         {
-            if (Dracula.tick >= Dracula.alarm)
+            if (dracula.tick >= dracula.alarm)
             {
                 // cast spell
                 // choose between nothing, casting, bats, magic ray
-                // enum DraculaAction { IDLE, CAST, BATS, RAY }
-                // Dracula is vulnerable during cast
+                // enum draculaAction { IDLE, CAST, BATS, RAY }
+                // dracula is vulnerable during cast
+                if (!dracula.state_clock)
+                {
+                    dracula.state_clock = true;
+                }
+                else
+                {
+                    if (dracula.state == 0)
+                    {
+                        // wait
+                        // num_bats = 0;
+                        // Magic.clear();
+                    }
+                    else if (dracula.state == 1)
+                    {
+                        // begin casting. vulnerable
+                        if (random(2) < 1)
+                        {
+                            // spawn bats
+                        }
+                        else
+                        {
+                            // spawn magic
+                        }
+                    }
+                    else if (dracula.state == 2)
+                    {
+                        // cast
+                    }
+                    else if (dracula.state == 3)
+                    {
+                        // wait
+                    }
+                    dracula.state_clock = false;
+                    dracula.state++;
+                    dracula.state %= Dracula.num_states;
+                }
             }
             else
             {
-                Dracula.tick++;
+                dracula.tick++;
             }
-            for (Stake s : Stakes)
+            DrawSprite(dracula_sprite, (camx - dracula.x) * tile_size, (camy - dracula.y) * tile_size, false);
+        }
+        else
+        {
+            // Draw ladder
+            DrawSprite(ladder, (ladder_x - camx) * tile_size, (ladder_y - camy) * tile_size, false);
+        }
+        // update static entities
+        for (int i = 0; i < num_static_ents; i++)
+        {
+            Entity e = StaticEntities[i];
+            if (e.sprite == null)
             {
-                boolean hit_hori = (s.x + s.dx) == Dracula.x;
-                boolean hit_vert = (s.y + s.dy) == Dracula.y;
-                if (hit_hori && hit_vert)
+                print("shit!");
+            }
+            DrawSprite(e.sprite, (e.x - camx) * tile_size, (e.y - camy) * tile_size, false);
+        }
+        // update stakes
+        for (int i = 0; i < MAX_STAKES; i++)
+        {
+            Stake s = Stakes[i];
+            if (!s.active)
+            {
+                continue;
+            }
+            if (s.tick >= s.alarm)
+            {
+                s.x += s.dx;
+                s.y += s.dy;
+                for (Entity e : StaticEntities)
+                {
+                    if (e.x == s.x && e.y == s.y)
+                    {
+                        if (e.Type == EntityType.WALL)
+                        {
+                            s.active = false;
+                            break;
+                        }
+                    }
+                }
+                if (!s.active)
+                {
+                    continue;
+                }
+                for (Entity sp : Spiders)
+                {
+                    if (s.x == sp.x && s.y == sp.y)
+                    {
+                        s.active = false;
+                        sp.active = false;
+                        break;
+                    }
+                }
+                if (!s.active)
+                {
+                    continue;
+                }
+                for (Bat b : Bats)
+                {
+                    if (s.x == b.x && s.y == b.y)
+                    {
+                        s.active = false;
+                        b.active = false;
+                        break;
+                    }
+                }
+                s.tick = 0;
+            }
+            else
+            {
+                s.tick++;
+            }
+            DrawSprite(s.sprite, (s.x - camx) * tile_size, (s.y - camy) * tile_size, false);
+            if (dracula.active)
+            {
+                if (dracula.x == s.x && dracula.y == s.y && dracula.state == 2)
+                {
+                    dracula.health--;
+                    if (dracula.health <= 0)
+                    {
+                        // win!
+                        win = true;
+                        return;
+                    }
+                    else
+                    {
+                        dracula.invincible_timer = dracula.invincible_time;
+                    }
+                }
+                boolean hit_hori = (s.x + s.dx) == dracula.x;
+                boolean hit_vert = (s.y + s.dy) == dracula.y;
+                if (hit_hori && hit_vert && dracula.state != 2)
                 {
                     // Teleport dracula
-                    int newx = (int)(Math.rand() * (d_room_size - 2) + 1;
-                    int newy = (int)(Math.rand() * (d_room_size - 2) + 1;
+                    int newx = (int)(random(1, (d_room_size - 2)));
+                    int newy = (int)(random(1, (d_room_size - 2)));
                     // Make sure he doesn't teleport in the same spot
                     if (hit_hori && s.dx != 0)
                     {
@@ -1015,94 +1115,29 @@ void draw()
                             newy %= d_room_size;
                         }
                     }
-                    Dracula.x = newx;
-                    Dracula.y = newy;
+                    dracula.x = newx;
+                    dracula.y = newy;
                     break;
                 }
             }
         }
-        else
+        // update spiders
+        // no spiders while fighting dracula!
+        if (!dracula.active)
         {
-            // Draw ladder
-            DrawSprite(ladder, (ladder_x - camx) * tile_size, (ladder_y - camy) * tile_size, false);
-                // update static entities
-            for (Entity e : StaticEntities)
+            for (int i = 0; i < num_spiders; i++)
             {
-                if (!e.active)
-                {
-                    continue;
-                }
-                DrawSprite(e.sprite, (e.x - camx) * tile_size, (e.y - camy) * tile_size, false);
-            }
-            // update stakes
-            for (Stake s : Stakes)
-            {
-                if (!s.active)
-                {
-                    continue;
-                }
-                if (s.tick >= s.alarm)
-                {
-                    s.x += s.dx;
-                    s.y += s.dy;
-                    for (Entity e : StaticEntities)
-                    {
-                        if (e.x == s.x && e.y == s.y)
-                        {
-                            if (e.Type == EntityType.WALL)
-                            {
-                                s.active = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (!s.active)
-                    {
-                        continue;
-                    }
-                    for (Entity sp : Spiders)
-                    {
-                        if (s.x == sp.x && s.y == sp.y)
-                        {
-                            s.active = false;
-                            sp.active = false;
-                            break;
-                        }
-                    }
-                    if (!s.active)
-                    {
-                        continue;
-                    }
-                    for (Bat b : Bats)
-                    {
-                        if (s.x == b.x && s.y == b.y)
-                        {
-                            s.active = false;
-                            b.active = false;
-                            break;
-                        }
-                    }
-                    s.tick = 0;
-                }
-                else
-                {
-                    s.tick++;
-                }
-                DrawSprite(s.sprite, (s.x - camx) * tile_size, (s.y - camy) * tile_size, false);
-            }
-            // update spiders
-            for (Entity e : Spiders)
-            {
+                Entity e = Spiders[i];
                 if (!e.active)
                 {
                     continue;
                 }
                 if (e.tick >= e.alarm)
                 {
-                    double rando = Math.random();
-                    if (rando < 0.5)
+                    double rando = random(4);
+                    if (rando < 2)
                     {
-                        if (rando < 0.25)
+                        if (rando < 1)
                         {
                             e.x += 1;
                             TestCollisionSpider(e, RIGHT);
@@ -1115,7 +1150,7 @@ void draw()
                     }
                     else
                     {
-                        if (rando < 0.75)
+                        if (rando < 3)
                         {
                             e.x -= 1;
                             TestCollisionSpider(e, LEFT);
@@ -1134,67 +1169,77 @@ void draw()
                 }
                 DrawSprite(e.sprite, (e.x - camx) * tile_size, (e.y - camy) * tile_size, false);
             }
+        }
 
-            // update bats
-            for (Bat b : Bats)
+        // update bats
+        for (int i = 0; i < num_bats; i++)
+        {
+            Bat b = Bats[i];
+            if (!b.active)
             {
-                if (!b.active)
+                continue;
+            }
+            if (b.tick >= b.alarm)
+            {
+                if (b.cycle_tick >= Bat.cycle_duration)
                 {
-                    continue;
-                }
-                if (b.tick >= b.alarm)
-                {
-                    if (b.cycle_tick >= Bat.cycle_duration)
+                    int dx = px - b.x;
+                    int dy = py - b.y;
+                    int abs_dx = Math.abs(dx);
+                    int abs_dy = Math.abs(dy);
+                    if ((abs_dx + abs_dy) <= Bat.detect_range)
                     {
-                        int dx = px - b.x;
-                        int dy = py - b.y;
-                        int abs_dx = Math.abs(dx);
-                        int abs_dy = Math.abs(dy);
-                        if ((abs_dx + abs_dy) <= Bat.detect_range)
+                        if (abs_dx >= abs_dy)
                         {
-                            if (abs_dx >= abs_dy)
-                            {
-                                b.dx = 1;
-                                b.dy = (abs_dy == 0) ? 0 : (1.0 / abs_dy);
-                            }                                   
-                            else                                
-                            {                                   
-                                b.dx = (abs_dx == 0) ? 0 : (1.0 / abs_dx);
-                                b.dy = 1;
-                            }
-                            if (dx < 0)
-                            {
-                                b.dx *= -1;
-                            }
-                            if (dy < 0)
-                            {
-                                b.dy *= -1;
-                            }
-                            b.cycle_tick = 0;
+                            b.dx = 1;
+                            b.dy = (abs_dy == 0) ? 0 : (1.0 / abs_dy);
+                        }                                   
+                        else                                
+                        {                                   
+                            b.dx = (abs_dx == 0) ? 0 : (1.0 / abs_dx);
+                            b.dy = 1;
                         }
-                    }
-                    else if (b.cycle_tick < Bat.flight_duration)
-                    {
-                        b.fx += b.dx;
-                        b.fy += b.dy;
-                        b.x = (int)b.fx;
-                        b.y = (int)b.fy;
-
-                        if (b.x == px && b.y == py)
+                        if (dx < 0)
                         {
+                            b.dx *= -1;
+                        }
+                        if (dy < 0)
+                        {
+                            b.dy *= -1;
+                        }
+                        b.cycle_tick = 0;
+                    }
+                }
+                else if (b.cycle_tick < Bat.flight_duration)
+                {
+                    b.fx += b.dx;
+                    b.fy += b.dy;
+                    b.x = (int)b.fx;
+                    b.y = (int)b.fy;
+
+                    if (b.x == px && b.y == py)
+                    {
+                        if (p_invincible_tick == 0)
+                        {
+                            p_invincible_tick = p_invincible_time;
                             p_health--;
+                            if (p_health <= 0)
+                            {
+                                map_size = 3;
+                                ready = false;
+                            }
                             b.active = false;
                         }
                     }
-                    b.cycle_tick++;
-                    b.tick = 0;
                 }
-                else
-                {
-                    b.tick++;
-                }
-                DrawSprite(bat, (b.x - camx) * tile_size, (b.y - camy) * tile_size, false);
+                b.cycle_tick++;
+                b.tick = 0;
             }
+            else
+            {
+                b.tick++;
+            }
+            DrawSprite(bat, (b.x - camx) * tile_size, (b.y - camy) * tile_size, false);
         }
 
         // ui stuff

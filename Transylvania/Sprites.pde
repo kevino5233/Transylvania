@@ -250,4 +250,4 @@ int[][] dracula_image = {
 //const uint32_t dracula_palate[] = {
 int[] dracula_palate = { 0xFFFFFF, 0xFFFFFF };
 //struct Sprite dracula = {6, 6, &dracula_image[0][0], dracula_palate};
-Sprite dracula = new Sprite(6, 6, dracula_image, dracula_palate);
+Sprite dracula_sprite = new Sprite(6, 6, dracula_image, dracula_palate);
