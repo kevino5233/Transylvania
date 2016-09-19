@@ -112,7 +112,7 @@ class Dracula extends Entity
 {
   public Dracula(int _x, int _y)
   {
-    super(_x, _y, 30, EntityType.DRACULA, dracula_sprite);
+    super(_x, _y, 20, EntityType.DRACULA, dracula_sprite);
   }
 
   public int state;
@@ -125,6 +125,8 @@ class Dracula extends Entity
 
   public int invincible_timer = 0;
   public final int invincible_time = 120;
+
+  public int xor_mask;
 }
 
 // TODO: Use pre-allocated arrays
@@ -135,7 +137,7 @@ final int  MAX_STATIC_ENTS = 1000;
 final int MAX_SPIDERS = 50;
 final int MAX_BATS = 25;
 final int MAX_STAKES = 9;
-final int MAX_SPELLS= 8;
+final int MAX_SPELLS= 16;
 
 int num_static_ents = 0;
 int num_spiders = 0;
@@ -425,8 +427,8 @@ void TeleportDracula()
         newy++;
         newy %= d_room_size;
     }
-    // dracula.x = newx;
-    // dracula.y = newy;
+    dracula.x = newx;
+    dracula.y = newy;
     return;
 }
 
@@ -533,7 +535,7 @@ void make_room()
   }
 
   // dracula!!!
-  if (true || map_size == 6)
+  if (map_size == 6)
   {
       for (int i = 0; i < d_room_size; i++)
       {
@@ -1053,14 +1055,26 @@ void draw()
                     }
                     break;
                 case 1:
-                    // teleport
-                    TeleportDracula();
+                    if (dracula.state_alarms == 0)
+                    {
+                        // teleport
+                        TeleportDracula();
+                    }
                     // cast animation
+                    if (dracula.invincible_timer == 0)
+                    {
+                        dracula_palate[0] = d_magic_colors[d_magic_i % 6];
+                        d_magic_i += 3;
+                        dracula_palate[1] = d_magic_colors[d_magic_i % 6];
+                        d_magic_i += 2;
+                    }
                     break;
                 case 2:
                     num_spells = 0;
                     if (dracula.state_alarms == 0)
                     {
+                        dracula_palate[0] = 0xFFFFFF;
+                        dracula_palate[1] = 0xFFFFFF;
                         // cast
                         dracula.bat_spell = ((int)random(2) == 0);
                         if (dracula.bat_spell)
@@ -1112,23 +1126,40 @@ void draw()
                             AddSpell(dracula.x, dracula.y + 2);
                             AddSpell(dracula.x, dracula.y - 2);
 
-                            AddSpell(dracula.x + 2, dracula.y + 2);
-                            AddSpell(dracula.x - 2, dracula.y + 2);
-                            AddSpell(dracula.x + 2, dracula.y - 2);
-                            AddSpell(dracula.x - 2, dracula.y - 2);
+                            AddSpell(dracula.x + 1, dracula.y + 1);
+                            AddSpell(dracula.x - 1, dracula.y + 1);
+                            AddSpell(dracula.x + 1, dracula.y - 1);
+                            AddSpell(dracula.x - 1, dracula.y - 1);
+
+                            AddSpell(dracula.x + 3, dracula.y + 1);
+                            AddSpell(dracula.x - 3, dracula.y + 1);
+                            AddSpell(dracula.x + 3, dracula.y - 1);
+                            AddSpell(dracula.x - 3, dracula.y - 1);
+
+                            AddSpell(dracula.x + 1, dracula.y + 3);
+                            AddSpell(dracula.x - 1, dracula.y + 3);
+                            AddSpell(dracula.x + 1, dracula.y - 3);
+                            AddSpell(dracula.x - 1, dracula.y - 3);
                         }
                     }
+                    dracula_palate[0] = d_magic_colors[d_magic_i % 6];
+                    d_magic_i += 3;
+                    dracula_palate[1] = d_magic_colors[d_magic_i % 6];
+                    d_magic_i += 2;
                     d_magic_palate[0] = d_magic_colors[d_magic_i % 6];
-                    d_magic_i++;
+                    d_magic_i += 5;
                     break;
                 case 3:
                     if (dracula.state_alarms == 0)
                     {
+                        dracula_palate[0] = 0xFFFFFF;
+                        dracula_palate[1] = 0xFFFFFF;
                         num_spells = 0;
                         // teleport
                         TeleportDracula();
                     }
                 }
+                // if (dracula.state
                 dracula.state_alarms++;
                 if (dracula.state_alarms >= dracula.alarms_per_state)
                 {
@@ -1141,6 +1172,20 @@ void draw()
             else
             {
                 dracula.tick++;
+            }
+            if (dracula.invincible_timer > 0)
+            {
+                dracula.invincible_timer--;
+                if (dracula.invincible_timer == 0)
+                {
+                    dracula_palate[0] = 0xFFFFFF;
+                    dracula_palate[1] = 0xFFFFFF;
+                }
+                else if (dracula.invincible_timer % p_hurtflash_interval == 0)
+                {
+                    dracula_palate[0] ^= dracula.xor_mask;
+                    dracula_palate[1] ^= dracula.xor_mask;
+                }
             }
             // draw magic
             for (int i = 0; i < num_spells; i++)
@@ -1251,9 +1296,28 @@ void draw()
             DrawSprite(s.sprite, (s.x - camx) * tile_size, (s.y - camy) * tile_size, false);
             if (dracula.active)
             {
-                if (dracula.x == s.x && dracula.y == s.y && dracula.state == 2)
+                if (dracula.invincible_timer == 0
+                    && dracula.x == s.x
+                    && dracula.y == s.y
+                    && (dracula.state == 1 || dracula.state == 2))
                 {
+                    s.active = false;
                     dracula.health--;
+
+                    dracula.state = 0;
+
+                    if (dracula_palate[0] == 0xFFFFFF)
+                    {
+                        dracula.xor_mask = 0xFF0000;
+                        dracula.xor_mask = 0xFF0000;
+                    }
+                    else
+                    {
+                        dracula.xor_mask = dracula_palate[0] ^ 0xFFFFFF;
+                        dracula_palate[1] = dracula_palate[0];
+                    }
+                    dracula_palate[0] ^= dracula.xor_mask;
+                    dracula_palate[1] ^= dracula.xor_mask;
                     if (dracula.health <= 0)
                     {
                         // win!
@@ -1266,11 +1330,14 @@ void draw()
                         TeleportDracula();
                     }
                 }
-                boolean hit_hori = (s.x + s.dx) == dracula.x;
-                boolean hit_vert = (s.y + s.dy) == dracula.y;
-                if (hit_hori || hit_vert)
+                else if (dracula.state != 1 && dracula.state != 2)
                 {
-                    TeleportDracula();
+                    boolean hit_hori = (s.x + s.dx) == dracula.x;
+                    boolean hit_vert = (s.y + s.dy) == dracula.y;
+                    if (hit_hori || hit_vert)
+                    {
+                        TeleportDracula();
+                    }
                 }
             }
         }
