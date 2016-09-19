@@ -238,6 +238,9 @@ int[][] d_magic_7_image = {
 //struct Sprite d_magic_7 = {6, 6, &d_magic_7_image[0][0], d_magic_palate};
 Sprite d_magic_7 = new Sprite(6, 6, d_magic_7_image, d_magic_palate);
 
+Sprite[] d_magic_sprites = { d_magic_1, d_magic_2, d_magic_3, d_magic_4, d_magic_5,
+    d_magic_6, d_magic_7 };
+
 //const uint8_t dracula_image[6][6] = {
 int[][] dracula_image = {
 {  0,   0,   0,   0, 255, 255, },
