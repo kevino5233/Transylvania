@@ -8,8 +8,8 @@ final int LEFT = 4;
 final int RIGHT = 8;
 
 boolean ready = false;
-boolean win = false;
-boolean lose = false;
+boolean win = true;
+boolean lose = true;
 
 boolean u_held = false;
 boolean d_held = false;
@@ -77,7 +77,6 @@ class Entity
   public boolean active;
 }
 
-// TODO: combine Bat and Stake into MovingEntity, pull out constant variables
 class Stake extends Entity
 {
   public Stake()
@@ -234,6 +233,7 @@ void TestCollisionSpider(Entity ent, int dir_from)
         {
           map_size = 3;
           p_health = 3;
+          p_stakes = MAX_STAKES;
           ready = false;
         }
       }
@@ -383,6 +383,7 @@ void TestCollisionPlayer(int dir_from)
         {
           map_size = 3;
           p_health = 3;
+          p_stakes = MAX_STAKES;
           ready = false;
         }
       }
@@ -403,6 +404,7 @@ void TestCollisionPlayer(int dir_from)
         {
           map_size = 3;
           p_health = 3;
+          p_stakes = MAX_STAKES;
           ready = false;
         }
       }
@@ -525,6 +527,7 @@ int[][] rooms = new int[5][5];
 
 void make_room()
 {
+  player_palate[0] = 0xFF0000;
   num_static_ents = 0;
   num_spiders = 0;
   num_bats = 0;
@@ -535,7 +538,7 @@ void make_room()
   }
 
   // dracula!!!
-  if (map_size == 6)
+  if (true || map_size == 6)
   {
       for (int i = 0; i < d_room_size; i++)
       {
@@ -797,9 +800,6 @@ void setup()
     leds.begin();
     leds.show();
 
-    // TODO: After switching to pre-allocated arrays, fill the
-    // arrays with sentinel objects so we take care of allocation during setup()
-
     for (int i = 0; i < MAX_STATIC_ENTS; i++)
     {
         StaticEntities[i] = new Entity(-1);
@@ -834,11 +834,8 @@ void setup()
 
     dracula = new Dracula(d_room_size / 2, d_room_size / 4);
     dracula.active = false;
-
-    make_room();
 }
 
-// TODO: Optimize via object pooling. Don't do draw calls on objects outside the camera
 /*
 // C++
 void loop()
@@ -855,10 +852,32 @@ void draw()
     DrawRect(0, 0, 60, 32, 0);
     if (win)
     {
-        // yay!
+        if (lose)
+        {
+            // title screen
+            if (buttons.anykey())
+            {
+                win = false;
+                lose = false;
+
+                make_room();
+            }
+        }
+        else
+        {
+            // yay!
+            if (buttons.anykey())
+            {
+                lose = true;
+            }
+        }
     }
     else if (lose)
     {
+        if (buttons.anykey())
+        {
+            win = true;
+        }
         // boo :(
     }
     else if (ready)
@@ -1454,7 +1473,6 @@ void draw()
                             b.active = false;
                         }
                     }
-                    print('(', b.fx, ',', b.fy, ") + t*(", b.dx, ',', b.dy, ")\n");
                 }
                 b.cycle_tick++;
                 b.tick = 0;
