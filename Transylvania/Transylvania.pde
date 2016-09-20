@@ -883,6 +883,7 @@ void draw()
 
                 win = false;
                 lose = false;
+                eat_input = true;
 
                 make_room();
             }
@@ -1002,33 +1003,44 @@ void draw()
 
         if (buttons.y1 || buttons.y2)
         {
-          if (!y_held)
-          {
-            y_held = true;
-            // throw stake up
-            if (p_stakes > 0)
+            if (eat_input)
             {
-              p_stakes--;
-              AddStake(UP);
+                eat_input = false;
+                y_held = true;
             }
-          }
-        } else
+            else if (!y_held)
+            {
+              y_held = true;
+              // throw stake up
+              if (p_stakes > 0)
+              {
+                p_stakes--;
+                AddStake(UP);
+              }
+            }
+        }
+        else
         {
           y_held = false;
         }
 
         if (buttons.a1 || buttons.a2)
         {
-          if (!a_held)
-          {
-            a_held = true;
-            // throw stake down 
-            if (p_stakes > 0)
+            if (eat_input)
             {
-              p_stakes--;
-              AddStake(DOWN);
+                eat_input = false;
+                a_held = true;
             }
-          }
+            else if (!a_held)
+            {
+              a_held = true;
+              // throw stake down 
+              if (p_stakes > 0)
+              {
+                p_stakes--;
+                AddStake(DOWN);
+              }
+            }
         } else
         {
           a_held = false;
@@ -1036,15 +1048,20 @@ void draw()
 
         if (buttons.x1 || buttons.x2)
         {
-          if (!x_held)
-          {
-            x_held = true;
-            if (p_stakes > 0)
+            if (eat_input)
             {
-              p_stakes--;
-              AddStake(LEFT);
+                eat_input = false;
+                x_held = true;
             }
-          }
+            else if (!x_held)
+            {
+              x_held = true;
+              if (p_stakes > 0)
+              {
+                p_stakes--;
+                AddStake(LEFT);
+              }
+            }
         } else
         {
           x_held = false;
@@ -1052,15 +1069,20 @@ void draw()
 
         if (buttons.b1 || buttons.b2)
         {
-          if (!b_held)
-          {
-            b_held = true;
-            if (p_stakes > 0)
+            if (eat_input)
             {
-              p_stakes--;
-              AddStake(RIGHT);
+                eat_input = false;
+                b_held = true;
             }
-          }
+            else if (!b_held)
+            {
+              b_held = true;
+              if (p_stakes > 0)
+              {
+                p_stakes--;
+                AddStake(RIGHT);
+              }
+            }
         }
         else
         {
