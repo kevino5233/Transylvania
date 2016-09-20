@@ -2,14 +2,27 @@
 
 OctoWS2811 leds = new OctoWS2811(240, 60);
 
+int[] rand_colors = { 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF };
+
 final int UP = 1;
 final int DOWN = 2;
 final int LEFT = 4;
 final int RIGHT = 8;
 
+int card_tick = 0;
+final int card_alarm = 60;
+
+int title_color_i = 0;
+
+int win_color_i = 0;
+
+int[] lose_colors = { 0xFF0000, 0x600000, 0x303030,  0x600000 };
+int lose_color_i = 0;
+
 boolean ready = false;
 boolean win = true;
 boolean lose = true;
+boolean eat_input = false;
 
 boolean u_held = false;
 boolean d_held = false;
@@ -20,6 +33,8 @@ boolean a_held = false;
 boolean x_held = false;
 boolean b_held = false;
 
+MIDIdrum StakeThrow = MIDIdrum.SideStick;
+MIDIdrum DraculaTeleportSound = MIDIdrum.ChineseCymbal;
 
 enum EntityType
 {
@@ -128,10 +143,6 @@ class Dracula extends Entity
   public int xor_mask;
 }
 
-// TODO: Use pre-allocated arrays
-// maybe have one huge array with all entities, and have defined start-end points?
-// Entity[] Entities = new Entity[MAX_ENTITIES];
-//
 final int  MAX_STATIC_ENTS = 1000;
 final int MAX_SPIDERS = 50;
 final int MAX_BATS = 25;
@@ -163,7 +174,6 @@ Dracula dracula = new Dracula(0, 0);
 
 // MAGIC MAGIC (oooh)! MAGIC MAGIC (ooh)! MAGIC MAGIC MAGIC MAGIC (ooh)!
 int d_magic_i = 0;
-int[] d_magic_colors = { 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF };
 
 // Sprite[] d_magic_sprites = { d_magic_1, d_magic_2, d_magic_3, d_magic_4,
 // d_magic_5, d_magic_6, d_magic_7 };
@@ -178,7 +188,7 @@ int p_stakes = MAX_STAKES;
 
 int p_health = 3;
 
-final int palarm = 30;
+final int palarm = 20;
 int ptick = 0;
 
 final int p_hurtflash_interval = 15;
@@ -220,22 +230,32 @@ void UpdateCamera()
   }
 }
 
-void TestCollisionSpider(Entity ent, int dir_from)
+boolean DamagePlayer()
 {
-    if (ent.x == px && ent.y == py)
+    if (p_invincible_tick == 0)
     {
-      if (p_invincible_tick == 0)
-      {
-        ent.active = false;
+        midi.playNote(5, MIDInote.A6, 127, 50);
         p_invincible_tick = p_invincible_time;
         p_health--;
         if (p_health <= 0)
         {
-          map_size = 3;
-          p_health = 3;
-          p_stakes = MAX_STAKES;
-          ready = false;
+            lose = true;
+            eat_input = true;
+            card_tick = 0;
+            return false;
         }
+        return true;
+    }
+    return false;
+}
+
+void TestCollisionSpider(Entity ent, int dir_from)
+{
+    if (ent.x == px && ent.y == py)
+    {
+      if (DamagePlayer())
+      {
+        ent.active = false;
       }
       return;
     }
@@ -290,40 +310,6 @@ void TestCollisionSpider(Entity ent, int dir_from)
     return;
 }
 
-void TestCollisionStake(Stake s)
-{
-  for (int i = 0; i < num_static_ents; i++)
-  {
-    //Entity& e = StaticEntities[i];  // C++
-    Entity e = StaticEntities[i];
-    if (e.x == s.x && e.y == s.y)
-    {
-      if (e.Type == EntityType.WALL)
-      {
-        s.active = false;
-        return;
-      }
-      if (e.Type == EntityType.SPIDER)
-      {
-        s.active = false;
-        e.active = false;
-        return;
-      }
-    }
-  }
-  for (int i = 0; i < num_bats; i++)
-  {
-    //Bat b = Bats[i];  // C++
-    Bat b = Bats[i];
-    if (s.x == b.x && s.y == b.y)
-    {
-      s.active = false;
-      b.active = false;
-      return;
-    }
-  }
-}
-
 void TestCollisionPlayer(int dir_from)
 {
   int a = 0;
@@ -346,9 +332,10 @@ void TestCollisionPlayer(int dir_from)
   }
   if (px== ladder_x && (py == ladder_y || py == (ladder_y + 1)))
   {
-    map_size++;
-    ready = false;
-    return;
+      midi.playNote(2, MIDInote.C4, 127, 200);
+      map_size++;
+      ready = false;
+      return;
   }
   for (int i = 0; i < num_static_ents; i++)
   {
@@ -374,18 +361,9 @@ void TestCollisionPlayer(int dir_from)
     Entity s = Spiders[i];
     if (s.active && s.x == px && s.y == py)
     {
-      if (p_invincible_tick == 0)
+      if (DamagePlayer())
       {
         s.active = false;
-        p_invincible_tick = p_invincible_time;
-        p_health--;
-        if (p_health <= 0)
-        {
-          map_size = 3;
-          p_health = 3;
-          p_stakes = MAX_STAKES;
-          ready = false;
-        }
       }
     }
   }
@@ -395,18 +373,9 @@ void TestCollisionPlayer(int dir_from)
     Bat bat = Bats[i];
     if (bat.active && px == bat.x && py == bat.y)
     {
-      if (p_invincible_tick == 0)
+      if (DamagePlayer())
       {
         bat.active = false;
-        p_invincible_tick = p_invincible_time;
-        p_health--;
-        if (p_health <= 0)
-        {
-          map_size = 3;
-          p_health = 3;
-          p_stakes = MAX_STAKES;
-          ready = false;
-        }
       }
     }
   }
@@ -415,6 +384,8 @@ void TestCollisionPlayer(int dir_from)
 
 void TeleportDracula()
 {
+    // dracula teleport noise
+    midi.playDrum(DraculaTeleportSound, 63);
     // Teleport dracula
     int newx = (int)(random(1, (d_room_size - 2)));
     int newy = (int)(random(1, (d_room_size - 2)));
@@ -488,7 +459,9 @@ void AddBat(int x, int y)
 
 void AddStake(int dir)
 {
-  midi.playNote(0, MIDInote.C4.ToInt(), 127, 100);
+  //midi.playNote(1, MIDInote.C4.ToInt(), 127, 200);
+  // dracula teleport noise
+  midi.playDrum(StakeThrow, 127);
 
   for (int i = 0; i < MAX_STAKES; i++)
   {
@@ -538,7 +511,7 @@ void make_room()
   }
 
   // dracula!!!
-  if (true || map_size == 6)
+  if (map_size == 6)
   {
       for (int i = 0; i < d_room_size; i++)
       {
@@ -790,8 +763,13 @@ void setup()
       midi.list(); // List all available MIDI device names and indexes to the console.
 
     midi.setInstrument(0, MIDIinstrument.GuitarFretNoise);
-    midi.setInstrument(1, MIDIinstrument.ReverseCymbal);
-    midi.setInstrument(2, MIDIinstrument.Applause);
+    //midi.setInstrument(1, MIDIinstrument.ClosedHiHat);
+    // ladder noise
+    midi.setInstrument(2, MIDIinstrument.Contrabass);
+    // dracula laser noise things? or the guitar thing
+    midi.setInstrument(3, MIDIinstrument.FX1rain);
+    midi.setInstrument(4, MIDIinstrument.Applause);
+    midi.setInstrument(5, MIDIinstrument.SlapBass1);
 
     //frameRate(120);
     size(920, 500, P2D);
@@ -850,13 +828,59 @@ void draw()
     midi.processNoteOffs();
     // clear screen
     DrawRect(0, 0, 60, 32, 0);
+    if (win || lose)
+    {
+        card_tick++;
+        if (card_tick >= card_alarm)
+        {
+            eat_input = false;
+            // update colors
+            if (win)
+            {
+                if (lose)
+                {
+                    title_color_i += 2;
+                    title_card_palate[2] = rand_colors[title_color_i % 6];
+                    title_color_i += 3;
+                    title_card_palate[3] = rand_colors[title_color_i % 6];
+
+                    int temp_color = title_card_palate[4];
+                    title_card_palate[4] = title_card_palate[5];
+                    title_card_palate[5] = title_card_palate[6];
+                    title_card_palate[6] = temp_color;
+                }
+                else
+                {
+                    win_color_i += 5;
+                    win_card_palate[0] = rand_colors[win_color_i % 6];
+
+                    int temp_color = win_card_palate[3];
+                    win_card_palate[3] = win_card_palate[4];
+                    win_card_palate[4] = win_card_palate[5];
+                    win_card_palate[5] = temp_color;
+                }
+            }
+            else if (lose)
+            {
+                lose_color_i++;
+                lose_card_palate[2] = lose_colors[lose_color_i % 4];
+            }
+            card_tick = 0;
+        }
+    }
     if (win)
     {
         if (lose)
         {
             // title screen
-            if (buttons.anykey())
+            DrawSprite(title_card, 0, 0, false);
+            if (!eat_input && buttons.anykey())
             {
+                map_size = 3;
+                p_health = 3;
+                p_invincible_tick = 0;
+                p_stakes = MAX_STAKES;
+
                 win = false;
                 lose = false;
 
@@ -866,17 +890,23 @@ void draw()
         else
         {
             // yay!
-            if (buttons.anykey())
+            DrawSprite(win_card, 0, 0, false);
+            if (!eat_input && buttons.anykey())
             {
                 lose = true;
+                eat_input = true;
+                card_tick = 0;
             }
         }
     }
     else if (lose)
     {
-        if (buttons.anykey())
+        DrawSprite(lose_card, 0, 0, false);
+        if (!eat_input && buttons.anykey())
         {
             win = true;
+            eat_input = true;
+            card_tick = 0;
         }
         // boo :(
     }
@@ -1082,14 +1112,16 @@ void draw()
                     // cast animation
                     if (dracula.invincible_timer == 0)
                     {
-                        dracula_palate[0] = d_magic_colors[d_magic_i % 6];
+                        midi.playNote(3, MIDInote.C5, 75, 100);
+                        dracula_palate[0] = rand_colors[d_magic_i % 6];
                         d_magic_i += 3;
-                        dracula_palate[1] = d_magic_colors[d_magic_i % 6];
+                        dracula_palate[1] = rand_colors[d_magic_i % 6];
                         d_magic_i += 2;
                     }
                     break;
                 case 2:
                     num_spells = 0;
+                    midi.playNote(0, MIDInote.C5, 75, 100);
                     if (dracula.state_alarms == 0)
                     {
                         dracula_palate[0] = 0xFFFFFF;
@@ -1161,11 +1193,11 @@ void draw()
                             AddSpell(dracula.x - 1, dracula.y - 3);
                         }
                     }
-                    dracula_palate[0] = d_magic_colors[d_magic_i % 6];
+                    dracula_palate[0] = rand_colors[d_magic_i % 6];
                     d_magic_i += 3;
-                    dracula_palate[1] = d_magic_colors[d_magic_i % 6];
+                    dracula_palate[1] = rand_colors[d_magic_i % 6];
                     d_magic_i += 2;
-                    d_magic_palate[0] = d_magic_colors[d_magic_i % 6];
+                    d_magic_palate[0] = rand_colors[d_magic_i % 6];
                     d_magic_i += 5;
                     break;
                 case 3:
@@ -1213,17 +1245,7 @@ void draw()
                 Entity e = Spells[i];
                 if (e.x == px && e.y == py)
                 {
-                    if (p_invincible_tick == 0)
-                    {
-                        p_invincible_tick = p_invincible_time;
-                        p_health--;
-                        if (p_health <= 0)
-                        {
-                            map_size = 3;
-                            p_health = 3;
-                            ready = false;
-                        }
-                    }
+                    DamagePlayer();
                 }
                 DrawSprite(
                     d_magic_sprites[d_magic_i % 7],
@@ -1251,7 +1273,7 @@ void draw()
             Entity e = StaticEntities[i];
 
             // C++ Comment out below line
-            if (e.sprite == null) { print("shit!"); }
+            // if (e.sprite == null) { print("shit!"); }
 
             DrawSprite(e.sprite, (e.x - camx) * tile_size, (e.y - camy) * tile_size, false);
         }
@@ -1269,9 +1291,10 @@ void draw()
             {
                 s.x += s.dx;
                 s.y += s.dy;
-                for (Entity e : StaticEntities)
+                for (int j = 0; j < num_static_ents; j++)
                 {
-                    if (e.x == s.x && e.y == s.y)
+                    Entity e = StaticEntities[j];
+                    if (e.active && e.x == s.x && e.y == s.y)
                     {
                         if (e.Type == EntityType.WALL)
                         {
@@ -1284,10 +1307,12 @@ void draw()
                 {
                     continue;
                 }
-                for (Entity sp : Spiders)
+                for (int j = 0; j < num_spiders; j++)
                 {
-                    if (s.x == sp.x && s.y == sp.y)
+                    Entity sp = Spiders[j];
+                    if (s.active && s.x == sp.x && s.y == sp.y)
                     {
+                        midi.playDrum(StakeThrow, 127);
                         s.active = false;
                         sp.active = false;
                         break;
@@ -1297,10 +1322,12 @@ void draw()
                 {
                     continue;
                 }
-                for (Bat b : Bats)
+                for (int j = 0; j < num_bats; j++)
                 {
+                    Bat b = Bats[j];
                     if (s.x == b.x && s.y == b.y)
                     {
+                        midi.playDrum(StakeThrow, 127);
                         s.active = false;
                         b.active = false;
                         break;
@@ -1341,7 +1368,9 @@ void draw()
                     {
                         // win!
                         win = true;
-                        return;
+                        midi.playNote(4, MIDInote.C5, 127, 800);
+                        eat_input = true;
+                        card_tick = 0;
                     }
                     else
                     {
@@ -1351,11 +1380,16 @@ void draw()
                 }
                 else if (dracula.state != 1 && dracula.state != 2)
                 {
-                    boolean hit_hori = (s.x + s.dx) == dracula.x;
-                    boolean hit_vert = (s.y + s.dy) == dracula.y;
-                    if (hit_hori || hit_vert)
+                    int diff_x = Math.abs(dracula.x - s.x);
+                    int diff_y = Math.abs(dracula.y - s.y);
+                    if (diff_x + diff_y < 4)
                     {
-                        TeleportDracula();
+                        boolean hit_hori = diff_x == 0;
+                        boolean hit_vert = diff_y == 0;
+                        if (hit_hori || hit_vert)
+                        {
+                            TeleportDracula();
+                        }
                     }
                 }
             }
@@ -1460,16 +1494,8 @@ void draw()
 
                     if (b.x == px && b.y == py)
                     {
-                        if (p_invincible_tick == 0)
+                        if (DamagePlayer())
                         {
-                            p_invincible_tick = p_invincible_time;
-                            p_health--;
-                            if (p_health <= 0)
-                            {
-                                map_size = 3;
-                                p_health = 3;
-                                ready = false;
-                            }
                             b.active = false;
                         }
                     }
@@ -1493,7 +1519,6 @@ void draw()
         DrawSprite(sprite_x, 48, 6, false);
         DrawNumber(p_stakes, 55, 7, 0xffffff, false);
 
-        leds.show();
     }
     else
     {
@@ -1502,5 +1527,6 @@ void draw()
         p_invincible_tick = 0;
         make_room();
     }
+    leds.show();
 }
 //}  // C++
