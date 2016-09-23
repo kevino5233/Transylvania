@@ -12,12 +12,12 @@ final int RIGHT = 8;
 int card_tick = 0;
 final int card_alarm = 60;
 
-int title_color_i = 0;
+byte title_color_i = 0;
 
-int win_color_i = 0;
+byte win_color_i = 0;
 
 int[] lose_colors = { 0xFF0000, 0x600000, 0x303030,  0x600000 };
-int lose_color_i = 0;
+byte lose_color_i = 0;
 
 boolean ready = false;
 boolean win = true;
@@ -57,13 +57,13 @@ class Entity
       active = false;
   }
 
-  public Entity(int _u)
+  public Entity(byte _u)
   {
     alarm = _u;
     active = false;
   }
 
-  public Entity(int _x, int _y, int _u, EntityType _Type, Sprite _s)
+  public Entity(int _x, int _y, byte _u, EntityType _Type, Sprite _s)
   {
     x = _x;
     y = _y;
@@ -85,8 +85,8 @@ class Entity
 */
   
   public int x, y;
-  final int alarm;
-  public int tick = 0;
+  final byte alarm;
+  public byte tick = 0;
   public EntityType Type;
   public Sprite sprite;
   public boolean active;
@@ -96,7 +96,7 @@ class Stake extends Entity
 {
   public Stake()
   {
-    super(0, 0, 7, EntityType.STAKE, stake);
+    super(0, 0, (byte)7, EntityType.STAKE, stake);
   }
 
   public int dx, dy, dir;
@@ -106,7 +106,7 @@ class Bat extends Entity
 {
   public Bat()
   {
-    super(0, 0, 15, EntityType.BAT, bat);
+    super(0, 0, (byte)15, EntityType.BAT, bat);
     fx = 0;
     fy = 0;
   }
@@ -126,7 +126,7 @@ class Dracula extends Entity
 {
   public Dracula(int _x, int _y)
   {
-    super(_x, _y, 20, EntityType.DRACULA, dracula_sprite);
+    super(_x, _y, (byte)20, EntityType.DRACULA, dracula_sprite);
   }
 
   public int state;
@@ -143,7 +143,7 @@ class Dracula extends Entity
   public int xor_mask;
 }
 
-final int  MAX_STATIC_ENTS = 1000;
+final int  MAX_STATIC_ENTS = 860;
 final int MAX_SPIDERS = 50;
 final int MAX_BATS = 25;
 final int MAX_STAKES = 9;
@@ -188,8 +188,8 @@ int p_stakes = MAX_STAKES;
 
 int p_health = 3;
 
-final int palarm = 20;
-int ptick = 0;
+final byte palarm = 20;
+byte ptick = 0;
 
 final int p_hurtflash_interval = 15;
 final int p_invincible_time = 120;
@@ -228,13 +228,16 @@ void UpdateCamera()
   {
     camy--;
   }
+  else
+  {
+      eat_input = false;
+  }
 }
 
 boolean DamagePlayer()
 {
     if (p_invincible_tick == 0)
     {
-        midi.playNote(5, MIDInote.A6, 127, 50);
         p_invincible_tick = p_invincible_time;
         p_health--;
         if (p_health <= 0)
@@ -242,8 +245,10 @@ boolean DamagePlayer()
             lose = true;
             eat_input = true;
             card_tick = 0;
+            midi.playNote(7, MIDInote.C3, 127, 150);
             return false;
         }
+        midi.playNote(6, MIDInote.C3, 127, 150);
         return true;
     }
     return false;
@@ -347,12 +352,12 @@ void TestCollisionPlayer(int dir_from)
     }
     if (e.x == px && e.y == py)
     {
-      if (e.Type == EntityType.WALL)
-      {
-        px += a;
-        py += b;
-      }
-      return;
+        if (e.Type == EntityType.WALL)
+        {
+            px += a;
+            py += b;
+        }
+        return;
     }
   }
   for (int i = 0; i < num_spiders; i++)
@@ -459,7 +464,6 @@ void AddBat(int x, int y)
 
 void AddStake(int dir)
 {
-  //midi.playNote(1, MIDInote.C4.ToInt(), 127, 200);
   // dracula teleport noise
   midi.playDrum(StakeThrow, 127);
 
@@ -500,6 +504,7 @@ int[][] rooms = new int[5][5];
 
 void make_room()
 {
+    randomSeed(millis());
   player_palate[0] = 0xFF0000;
   num_static_ents = 0;
   num_spiders = 0;
@@ -511,6 +516,7 @@ void make_room()
   }
 
   // dracula!!!
+  // if (true ||map_size == 6)
   if (map_size == 6)
   {
       for (int i = 0; i < d_room_size; i++)
@@ -769,7 +775,10 @@ void setup()
     // dracula laser noise things? or the guitar thing
     midi.setInstrument(3, MIDIinstrument.FX1rain);
     midi.setInstrument(4, MIDIinstrument.Applause);
-    midi.setInstrument(5, MIDIinstrument.SlapBass1);
+    midi.setInstrument(5, MIDIinstrument.Oboe);
+    midi.setInstrument(6, MIDIinstrument.Bagpipe);
+    // death nose gunshot?
+    midi.setInstrument(7, MIDIinstrument.Gunshot);
 
     //frameRate(120);
     size(920, 500, P2D);
@@ -780,17 +789,17 @@ void setup()
 
     for (int i = 0; i < MAX_STATIC_ENTS; i++)
     {
-        StaticEntities[i] = new Entity(-1);
+        StaticEntities[i] = new Entity((byte)-1);
     }
 
     for (int i = 0; i < MAX_SPIDERS; i++)
     {
-        Spiders[i] = new Entity(100);
+        Spiders[i] = new Entity((byte)100);
     }
 
     for (int i = 0; i < MAX_SPELLS; i++)
     {
-        Spells[i] = new Entity(-1);
+        Spells[i] = new Entity((byte)-1);
     }
 
     for (int i = 0; i < MAX_BATS; i++)
@@ -824,6 +833,7 @@ while(1) {
 */
 void draw()
 {
+
     // uhh
     midi.processNoteOffs();
     // clear screen
@@ -843,6 +853,7 @@ void draw()
                     title_card_palate[2] = rand_colors[title_color_i % 6];
                     title_color_i += 3;
                     title_card_palate[3] = rand_colors[title_color_i % 6];
+                    title_color_i %= 6;
 
                     int temp_color = title_card_palate[4];
                     title_card_palate[4] = title_card_palate[5];
@@ -852,7 +863,8 @@ void draw()
                 else
                 {
                     win_color_i += 5;
-                    win_card_palate[0] = rand_colors[win_color_i % 6];
+                    win_color_i %= 6;
+                    win_card_palate[0] = rand_colors[win_color_i];
 
                     int temp_color = win_card_palate[3];
                     win_card_palate[3] = win_card_palate[4];
@@ -863,7 +875,8 @@ void draw()
             else if (lose)
             {
                 lose_color_i++;
-                lose_card_palate[2] = lose_colors[lose_color_i % 4];
+                lose_color_i %= 4;
+                lose_card_palate[2] = lose_colors[lose_color_i];
             }
             card_tick = 0;
         }
@@ -905,6 +918,7 @@ void draw()
         DrawSprite(lose_card, 0, 0, false);
         if (!eat_input && buttons.anykey())
         {
+            dracula.active = false;
             win = true;
             eat_input = true;
             card_tick = 0;
@@ -915,100 +929,112 @@ void draw()
     {
         if (!u_held)
         {
-          if (buttons.u1 || buttons.u2)
-          {
-            ptick = 0;
-            if (py > 0)
+            if (buttons.u1 || buttons.u2)
             {
-              py = py - 1;
-              TestCollisionPlayer(UP);
-              pdir = UP;
+                if (!eat_input)
+                {
+                    if (py > 0)
+                    {
+                        ptick = 0;
+                        py = py - 1;
+                        TestCollisionPlayer(UP);
+                        pdir = UP;
+                    }
+                    dpx = 0;
+                    dpy = -1;
+                    u_held = true;
+                }
             }
-            dpx = 0;
-            dpy = -1;
-            u_held = true;
-          }
-        } else if (!(buttons.u1 || buttons.u2))
+        }
+        else if (!(buttons.u1 || buttons.u2))
         {
-          dpy = 0;
-          dpx = 0;
-          ptick = 0;
-          u_held = false;
+            dpy = 0;
+            dpx = 0;
+            ptick = 0;
+            u_held = false;
         }
         if (!d_held)
         {
-          if (buttons.d1 || buttons.d2)
-          {
-            if (py < grid_length - 1)
+            if (buttons.d1 || buttons.d2)
             {
-              py = py + 1;
-              TestCollisionPlayer(DOWN);
-              pdir = DOWN;
+                if (!eat_input)
+                {
+                    if (py < grid_length - 1)
+                    {
+                        ptick = 0;
+                        py = py + 1;
+                        TestCollisionPlayer(DOWN);
+                        pdir = DOWN;
+                    }
+                    dpx = 0;
+                    dpy = 1;
+                    d_held = true;
+                }
             }
-            dpx = 0;
-            dpy = 1;
-            d_held = true;
-          }
-        } else if (!(buttons.d1 || buttons.d2))
+        } 
+        else if (!(buttons.d1 || buttons.d2))
         {
-          dpy = 0;
-          dpx = 0;
-          ptick = 0;
-          d_held = false;
+            dpy = 0;
+            dpx = 0;
+            ptick = 0;
+            d_held = false;
         }
         if (!l_held)
         {
-          if (buttons.l1 || buttons.l2)
-          {
-            ptick = 0;
-            if (px > 0)
+            if (buttons.l1 || buttons.l2)
             {
-              px = px - 1;
-              TestCollisionPlayer(LEFT);
-              pdir = LEFT;
+                if (!eat_input)
+                {
+                    if (px > 0)
+                    {
+                        ptick = 0;
+                        px = px - 1;
+                        TestCollisionPlayer(LEFT);
+                        pdir = LEFT;
+                    }
+                    dpx = -1;
+                    dpy = 0;
+                    l_held = true;
+                }
             }
-            dpx = -1;
-            dpy = 0;
-            l_held = true;
-          }
-        } else if (!(buttons.l1 || buttons.l2))
+        }
+        else if (!(buttons.l1 || buttons.l2))
         {
-          dpy = 0;
-          dpx = 0;
-          ptick = 0;
-          l_held = false;
+            dpy = 0;
+            dpx = 0;
+            ptick = 0;
+            l_held = false;
         }
         if (!r_held)
         {
-          if (buttons.r1 || buttons.r2)
-          {
-            ptick = 0;
-            if (px < grid_length - 1)
+            if (buttons.r1 || buttons.r2)
             {
-              px = px + 1;
-              TestCollisionPlayer(RIGHT);
-              pdir = RIGHT;
+                if (!eat_input)
+                {
+                    if (px < grid_length - 1)
+                    {
+                        ptick = 0;
+                        px = px + 1;
+                        TestCollisionPlayer(RIGHT);
+                        pdir = RIGHT;
+                    }
+                    dpx = 1;
+                    dpy = 0;
+                    r_held = true;
+                }
             }
-            dpx = 1;
-            dpy = 0;
-            r_held = true;
-          }
-        } else if (!(buttons.r1 || buttons.r2))
+        }
+        else if (!(buttons.r1 || buttons.r2))
         {
-          dpy = 0;
-          dpx = 0;
-          ptick = 0;
-          r_held = false;
+            dpy = 0;
+            dpx = 0;
+            ptick = 0;
+            r_held = false;
         }
 
         if (buttons.y1 || buttons.y2)
         {
-            if (eat_input)
-            {
-                eat_input = false;
-                y_held = true;
-            }
-            else if (!y_held)
+            if (!eat_input && !y_held)
             {
               y_held = true;
               // throw stake up
@@ -1026,12 +1052,7 @@ void draw()
 
         if (buttons.a1 || buttons.a2)
         {
-            if (eat_input)
-            {
-                eat_input = false;
-                a_held = true;
-            }
-            else if (!a_held)
+            if (!eat_input && !a_held)
             {
               a_held = true;
               // throw stake down 
@@ -1048,12 +1069,7 @@ void draw()
 
         if (buttons.x1 || buttons.x2)
         {
-            if (eat_input)
-            {
-                eat_input = false;
-                x_held = true;
-            }
-            else if (!x_held)
+            if (!eat_input && !x_held)
             {
               x_held = true;
               if (p_stakes > 0)
@@ -1069,12 +1085,7 @@ void draw()
 
         if (buttons.b1 || buttons.b2)
         {
-            if (eat_input)
-            {
-                eat_input = false;
-                b_held = true;
-            }
-            else if (!b_held)
+            if (!eat_input && !b_held)
             {
               b_held = true;
               if (p_stakes > 0)
@@ -1390,7 +1401,7 @@ void draw()
                     {
                         // win!
                         win = true;
-                        midi.playNote(4, MIDInote.C5, 127, 800);
+                        midi.playNote(4, MIDInote.C5, 127, 2000);
                         eat_input = true;
                         card_tick = 0;
                     }
@@ -1459,7 +1470,7 @@ void draw()
                     }
                     e.tick = 0;
                 }
-                else
+                else if (!eat_input)
                 {
                     e.tick++;
                 }
@@ -1525,7 +1536,7 @@ void draw()
                 b.cycle_tick++;
                 b.tick = 0;
             }
-            else
+            else if (!eat_input)
             {
               b.tick++;
             }
